@@ -1,0 +1,71 @@
+LICENCIA DE SOFTWARE PROPIETARIO
+PROPRIETARY SOFTWARE LICENSE
+================================================================
+
+Software:   La Biblioteca — Reservas (PWA)
+Versión:    1.0.0
+Autor y titular / Author and owner:  Juan Carlos Pérez Arthur
+Año:        2026
+
+----------------------------------------------------------------
+ESPAÑOL
+----------------------------------------------------------------
+
+© 2026 Juan Carlos Pérez Arthur. TODOS LOS DERECHOS RESERVADOS.
+
+Este software y todo su contenido (código fuente, diseño, interfaz,
+recursos gráficos, textos y documentación) son propiedad exclusiva
+de Juan Carlos Pérez Arthur y están protegidos por las leyes de
+derecho de autor de la República Dominicana y por los tratados
+internacionales aplicables.
+
+Queda PROHIBIDO, sin autorización previa, expresa y por escrito del
+titular:
+
+  1. Copiar, reproducir o duplicar total o parcialmente el software.
+  2. Distribuir, sublicenciar, vender, alquilar o ceder el software
+     a terceros.
+  3. Modificar, adaptar, traducir o crear obras derivadas.
+  4. Realizar ingeniería inversa, descompilar o desensamblar, salvo
+     en la medida permitida por ley imperativa.
+  5. Eliminar o alterar los avisos de autoría y propiedad.
+
+El titular conserva en todo momento la totalidad de los derechos
+de propiedad intelectual sobre el software.
+
+ESTE SOFTWARE SE PROPORCIONA "TAL CUAL", SIN GARANTÍAS DE NINGÚN
+TIPO. EL AUTOR NO SERÁ RESPONSABLE DE NINGÚN DAÑO DERIVADO DEL USO
+O LA IMPOSIBILIDAD DE USO DEL SOFTWARE.
+
+----------------------------------------------------------------
+ENGLISH
+----------------------------------------------------------------
+
+© 2026 Juan Carlos Pérez Arthur. ALL RIGHTS RESERVED.
+
+This software and all of its contents (source code, design, user
+interface, graphic assets, text and documentation) are the exclusive
+property of Juan Carlos Pérez Arthur and are protected by the
+copyright laws of the Dominican Republic and applicable international
+treaties.
+
+Without the prior, express, written authorization of the owner, it is
+PROHIBITED to:
+
+  1. Copy, reproduce or duplicate the software, in whole or in part.
+  2. Distribute, sublicense, sell, rent or transfer the software to
+     third parties.
+  3. Modify, adapt, translate or create derivative works.
+  4. Reverse engineer, decompile or disassemble, except to the extent
+     permitted by mandatory law.
+  5. Remove or alter authorship and ownership notices.
+
+The owner retains, at all times, all intellectual property rights in
+the software.
+
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND. THE
+AUTHOR SHALL NOT BE LIABLE FOR ANY DAMAGES ARISING FROM THE USE OR
+INABILITY TO USE THE SOFTWARE.
+
+================================================================
+Contacto del titular / Owner contact: Juan Carlos Pérez Arthur

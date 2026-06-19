@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+  La Biblioteca — Reservas
+  © 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados. / All rights reserved.
+  Software propietario. Prohibida su copia, distribución o uso sin autorización del autor.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+
+  <!-- Política de seguridad de contenido (defensa anti-XSS / fuga de datos).
+       Todo queda bloqueado al propio origen: nada se carga ni se envía a terceros. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+  <title>La Biblioteca — Reservas</title>
+  <meta name="description" content="Gestor de reservas privado y cifrado para La Biblioteca. Funciona sin conexión.">
+
+  <meta name="theme-color" content="#0E0B08">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- iOS / iPadOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="La Biblioteca">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="app"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
