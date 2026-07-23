@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!--
+  BotiFarma — Recompra
+  © 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados. / All rights reserved.
+  Software propietario. Prohibida su copia, distribución o uso sin autorización del autor.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+
+  <!-- Política de seguridad de contenido: todo bloqueado al propio origen. -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'; worker-src 'self'; upgrade-insecure-requests">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+
+  <title>BotiFarma — Recompra</title>
+  <meta name="description" content="Gestor de recompras de BotiFarma: sepa cada día a qué cliente le toca volver a comprar y recuérdeselo por WhatsApp. Funciona sin conexión.">
+
+  <meta name="theme-color" content="#065F46">
+  <meta name="color-scheme" content="light">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <!-- iOS / iPadOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="BotiFarma">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+  <link rel="icon" href="assets/favicon.ico" sizes="any">
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="cabecera">
+  <div class="cabecera-marca">
+    <img src="assets/icon-192.png" alt="Logo BotiFarma" class="cabecera-logo" width="44" height="44">
+    <div class="cabecera-titulos">
+      <h1>BotiFarma</h1>
+      <p>Recompra</p>
+    </div>
+  </div>
+  <nav class="nav" aria-label="Secciones">
+    <button class="nav-btn nav-activo" data-vista="hoy" type="button">
+      <span class="nav-icono">📅</span><span>Hoy</span>
+    </button>
+    <button class="nav-btn" data-vista="clientes" type="button">
+      <span class="nav-icono">👥</span><span>Clientes</span>
+    </button>
+    <button class="nav-btn" data-vista="nuevo" type="button">
+      <span class="nav-icono">➕</span><span>Nuevo</span>
+    </button>
+    <button class="nav-btn" data-vista="ajustes" type="button">
+      <span class="nav-icono">⚙️</span><span>Ajustes</span>
+    </button>
+  </nav>
+</header>
+
+<main class="contenido">
+
+  <!-- ══════════ VISTA: HOY ══════════ -->
+  <section id="vista-hoy" class="vista vista-visible" aria-label="Recompras de hoy">
+    <div class="estadisticas">
+      <div class="stat stat-rojo">
+        <span class="stat-num" id="stat-vencidas">0</span>
+        <span class="stat-tit">Vencidas</span>
+      </div>
+      <div class="stat stat-ambar">
+        <span class="stat-num" id="stat-hoy">0</span>
+        <span class="stat-tit">Para hoy</span>
+      </div>
+      <div class="stat stat-azul">
+        <span class="stat-num" id="stat-proximas">0</span>
+        <span class="stat-tit">Próx. 3 días</span>
+      </div>
+      <div class="stat stat-verde">
+        <span class="stat-num" id="stat-clientes">0</span>
+        <span class="stat-tit">Clientes</span>
+      </div>
+    </div>
+
+    <div id="hoy-listas"></div>
+
+    <div id="hoy-vacio" class="vacio oculto">
+      <p class="vacio-icono">🎉</p>
+      <h2>Todo al día</h2>
+      <p>No hay recompras pendientes por ahora.<br>Registre clientes en la pestaña <strong>Nuevo</strong>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ VISTA: CLIENTES ══════════ -->
+  <section id="vista-clientes" class="vista" aria-label="Todos los clientes">
+    <div class="barra-busqueda">
+      <input type="search" id="busqueda" placeholder="Buscar por nombre, producto o teléfono…" autocomplete="off">
+    </div>
+    <div id="clientes-lista"></div>
+    <div id="clientes-vacio" class="vacio oculto">
+      <p class="vacio-icono">👥</p>
+      <h2>Sin clientes todavía</h2>
+      <p>Registre su primer cliente en la pestaña <strong>Nuevo</strong>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════ VISTA: NUEVO / EDITAR ══════════ -->
+  <section id="vista-nuevo" class="vista" aria-label="Registrar cliente">
+    <h2 class="vista-titulo" id="form-titulo">Nuevo cliente</h2>
+    <form id="form-cliente" autocomplete="off">
+      <input type="hidden" id="f-id">
+      <label class="campo">
+        <span>Nombre <em>*</em></span>
+        <input type="text" id="f-nombre" required maxlength="80" placeholder="Ej: María Rodríguez">
+      </label>
+      <label class="campo">
+        <span>Teléfono (WhatsApp)</span>
+        <input type="tel" id="f-tel" maxlength="20" placeholder="Ej: 809-555-1234">
+      </label>
+      <label class="campo">
+        <span>Producto que compra <em>*</em></span>
+        <input type="text" id="f-producto" required maxlength="120" placeholder="Ej: Losartán 50 mg">
+      </label>
+      <div class="campo">
+        <span>¿Cada cuántos días recompra? <em>*</em></span>
+        <div class="frecuencias" id="frecuencias">
+          <button type="button" class="chip" data-dias="7">7</button>
+          <button type="button" class="chip" data-dias="15">15</button>
+          <button type="button" class="chip chip-activo" data-dias="30">30</button>
+          <button type="button" class="chip" data-dias="60">60</button>
+          <button type="button" class="chip" data-dias="90">90</button>
+        </div>
+        <input type="number" id="f-dias" min="1" max="365" value="30" required>
+      </div>
+      <label class="campo">
+        <span>Última compra</span>
+        <input type="date" id="f-ultima">
+      </label>
+      <label class="campo">
+        <span>Notas</span>
+        <textarea id="f-notas" rows="2" maxlength="300" placeholder="Ej: prefiere genérico, pagar con tarjeta…"></textarea>
+      </label>
+      <div class="form-botones">
+        <button type="submit" class="btn btn-primario" id="btn-guardar">Guardar cliente</button>
+        <button type="button" class="btn btn-secundario oculto" id="btn-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ══════════ VISTA: AJUSTES ══════════ -->
+  <section id="vista-ajustes" class="vista" aria-label="Ajustes">
+    <h2 class="vista-titulo">Ajustes</h2>
+
+    <div class="tarjeta">
+      <h3>Mensaje de WhatsApp</h3>
+      <p class="ayuda">Se envía al tocar el botón de WhatsApp. Puede usar
+        <code>{nombre}</code>, <code>{producto}</code> y <code>{dias}</code>.</p>
+      <textarea id="plantilla" rows="4" maxlength="500"></textarea>
+      <button type="button" class="btn btn-primario" id="btn-plantilla">Guardar mensaje</button>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Copia de seguridad</h3>
+      <p class="ayuda">Los datos viven solo en este dispositivo. Exporte una copia
+        de vez en cuando y guárdela en un lugar seguro.</p>
+      <div class="form-botones">
+        <button type="button" class="btn btn-primario" id="btn-exportar">Exportar copia</button>
+        <button type="button" class="btn btn-secundario" id="btn-importar">Importar copia</button>
+        <input type="file" id="archivo-importar" accept="application/json,.json" class="oculto">
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3>Instalar como app</h3>
+      <p class="ayuda">
+        <strong>Android (Chrome):</strong> menú ⋮ → «Instalar app».<br>
+        <strong>iPhone/iPad (Safari):</strong> botón Compartir → «Añadir a pantalla de inicio».<br>
+        <strong>Laptop (Chrome/Edge):</strong> ícono de instalar en la barra de direcciones.
+      </p>
+      <button type="button" class="btn btn-primario oculto" id="btn-instalar">📲 Instalar ahora</button>
+    </div>
+
+    <div class="tarjeta tarjeta-peligro">
+      <h3>Zona de peligro</h3>
+      <p class="ayuda">Borra todos los clientes y su historial de este dispositivo. No se puede deshacer.</p>
+      <button type="button" class="btn btn-peligro" id="btn-borrar-todo">Borrar todos los datos</button>
+    </div>
+
+    <p class="pie">BotiFarma — Recompra · v1.0.0<br>© 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.</p>
+  </section>
+
+</main>
+
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script src="app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!--
+    BotiFarma Recompra — Logo
+    © 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.
+    Cruz de farmacia + flecha circular de recompra.
+  -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10B981"/>
+      <stop offset="0.55" stop-color="#059669"/>
+      <stop offset="1" stop-color="#065F46"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="112" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="240" rx="112" fill="url(#shine)"/>
+
+  <!-- Flecha circular (ciclo de recompra) -->
+  <g stroke="#FFFFFF" stroke-width="30" fill="none" stroke-linecap="round" opacity="0.95">
+    <path d="M 256 86
+             A 170 170 0 1 0 402 170"/>
+  </g>
+  <!-- Punta de la flecha -->
+  <path d="M 402 170 L 352 136 L 416 112 Z" fill="#FFFFFF" opacity="0.95"
+        transform="rotate(14 402 170)"/>
+
+  <!-- Cruz de farmacia -->
+  <rect x="214" y="150" width="84" height="212" rx="26" fill="#FFFFFF"/>
+  <rect x="150" y="214" width="212" height="84" rx="26" fill="#FFFFFF"/>
+
+  <!-- Hoja (salud/natural) sobre la cruz -->
+  <path d="M 256 214
+           C 232 190 232 160 256 140
+           C 280 160 280 190 256 214 Z"
+        fill="#059669" opacity="0"/>
+</svg>
