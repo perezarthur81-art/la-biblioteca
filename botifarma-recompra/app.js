@@ -7,6 +7,27 @@
 /* ══════════ Datos ══════════ */
 
 const CLAVE_DATOS = "botifarma_recompra_v1";
+const CLAVE_PRO = "botifarma_pro_v1";
+
+/* Versión GRATIS: hasta este número de clientes. PRO: sin límite. */
+const LIMITE_GRATIS = 15;
+
+/* Huellas SHA-256 de los códigos de activación PRO.
+   Los códigos reales los guarda solo el dueño; aquí no aparecen. */
+const HUELLAS_PRO = [
+  "02e2d941106b7bf563d897f4379b64f6190d517d09218221755cb0ea4996efc5",
+  "46fbc024ca956a4e65ca4b4f9f3458975f3ae50fae79f4a6c8673c1f213a938c",
+  "5ce8245d3bff5fc78a57644b44fcf9ca8d0193a864fdb54d141cdeb949b85a86",
+  "656cec5b2a1884776206f20608bd70c7a477a245e267342ebc765fed1e055edd",
+  "6db49a388f89c6b171ee3af7e4dd60f01eb49ec90c2e0c80a0caded7c6df7ee8",
+  "7f245ae484388e6ac6add22e301e6e0857a0d5e8c42e2eb6f883412f9348f761",
+  "172e8f98e2db387bf14ed43261c1bdb8f70f221fec4041ef2a3b81c1c3a1b033",
+  "8f091403c0bc13aacab5ed6d629cf3d42045cd51e0b616317ad33feee68eaed4",
+  "d2db5dd56c0124af122271647c1154ccc49274893019ba56b46a8fc01942e8e1",
+  "be2247133c82ddf8d2c9ce5dd77035495a6cbb681b63070551925bb986989fbb",
+];
+
+let esPro = HUELLAS_PRO.includes(localStorage.getItem(CLAVE_PRO) || "");
 
 const PLANTILLA_DEFECTO =
   "Hola {nombre} 👋, le saluda BotiFarma. Le recordamos que ya le toca la " +
@@ -336,6 +357,12 @@ function prepararFormulario() {
     }
 
     const id = $("#f-id").value;
+    if (!id && !esPro && datos.clientes.length >= LIMITE_GRATIS) {
+      avisar("🔒 La versión GRATIS permite hasta " + LIMITE_GRATIS +
+        " clientes. Active PRO en Ajustes.");
+      mostrarVista("ajustes");
+      return;
+    }
     if (id) {
       const c = datos.clientes.find((x) => x.id === id);
       if (c) Object.assign(c, registro);
@@ -354,6 +381,50 @@ function prepararFormulario() {
     limpiarFormulario();
     pintarTodo();
     mostrarVista("hoy");
+  });
+}
+
+/* ══════════ Versión GRATIS / PRO ══════════ */
+
+async function huellaSHA256(texto) {
+  const bytes = new TextEncoder().encode(texto);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hash))
+    .map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function pintarVersion() {
+  $("#badge-pro").classList.toggle("oculto", !esPro);
+  $("#pro-activar").classList.toggle("oculto", esPro);
+  $("#version-estado").textContent = esPro
+    ? "✅ Versión PRO activa: clientes ilimitados y mensaje de WhatsApp personalizable."
+    : "Versión GRATIS: hasta " + LIMITE_GRATIS + " clientes y mensaje de " +
+      "WhatsApp estándar. Active PRO con su código para quitar los límites.";
+
+  // Mensaje de WhatsApp personalizable: solo PRO
+  $("#plantilla").disabled = !esPro;
+  $("#btn-plantilla").disabled = !esPro;
+  $("#plantilla-nota").classList.toggle("oculto", esPro);
+}
+
+function prepararVersion() {
+  $("#btn-activar-pro").addEventListener("click", async () => {
+    const codigo = $("#codigo-pro").value.trim().toUpperCase();
+    if (!codigo) { avisar("Escriba su código de activación"); return; }
+    if (!crypto.subtle) {
+      avisar("⚠️ La activación requiere abrir la app por HTTPS");
+      return;
+    }
+    const huella = await huellaSHA256(codigo);
+    if (HUELLAS_PRO.includes(huella)) {
+      localStorage.setItem(CLAVE_PRO, huella);
+      esPro = true;
+      $("#codigo-pro").value = "";
+      pintarVersion();
+      avisar("🎉 ¡Versión PRO activada! Gracias por su compra.");
+    } else {
+      avisar("❌ Código no válido. Verifíquelo e intente de nuevo.");
+    }
   });
 }
 
@@ -474,6 +545,8 @@ document.addEventListener("DOMContentLoaded", () => {
   prepararNavegacion();
   prepararFormulario();
   prepararAjustes();
+  prepararVersion();
+  pintarVersion();
   prepararInstalacion();
   $("#busqueda").addEventListener("input", pintarClientes);
   pintarTodo();

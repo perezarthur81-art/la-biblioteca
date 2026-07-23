@@ -45,7 +45,7 @@
     <img src="assets/icon-192.png" alt="Logo BotiFarma" class="cabecera-logo" width="44" height="44">
     <div class="cabecera-titulos">
       <h1>BotiFarma</h1>
-      <p>Recompra</p>
+      <p>Recompra <span id="badge-pro" class="badge-pro oculto">PRO</span></p>
     </div>
   </div>
   <nav class="nav" aria-label="Secciones">
@@ -156,10 +156,22 @@
   <section id="vista-ajustes" class="vista" aria-label="Ajustes">
     <h2 class="vista-titulo">Ajustes</h2>
 
+    <div class="tarjeta tarjeta-version">
+      <h3>Versión</h3>
+      <p class="ayuda" id="version-estado"></p>
+      <div id="pro-activar" class="pro-activar">
+        <input type="text" id="codigo-pro" placeholder="Código de activación (BOTI-XXXX-XXXX)"
+               autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="20">
+        <button type="button" class="btn btn-primario" id="btn-activar-pro">Activar PRO</button>
+      </div>
+    </div>
+
     <div class="tarjeta">
       <h3>Mensaje de WhatsApp</h3>
       <p class="ayuda">Se envía al tocar el botón de WhatsApp. Puede usar
         <code>{nombre}</code>, <code>{producto}</code> y <code>{dias}</code>.</p>
+      <p class="ayuda nota-pro oculto" id="plantilla-nota">🔒 Personalizar el mensaje es una
+        función <strong>PRO</strong>. En la versión GRATIS se usa el mensaje estándar.</p>
       <textarea id="plantilla" rows="4" maxlength="500"></textarea>
       <button type="button" class="btn btn-primario" id="btn-plantilla">Guardar mensaje</button>
     </div>
@@ -191,7 +203,7 @@
       <button type="button" class="btn btn-peligro" id="btn-borrar-todo">Borrar todos los datos</button>
     </div>
 
-    <p class="pie">BotiFarma — Recompra · v1.0.0<br>© 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.</p>
+    <p class="pie">BotiFarma — Recompra · v1.1.0<br>© 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.</p>
   </section>
 
 </main>

@@ -2,7 +2,7 @@
    © 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.
    Cachea el "app shell" para funcionar 100% sin conexión. */
 
-const CACHE = "botifarma-recompra-v1.0.0";
+const CACHE = "botifarma-recompra-v1.1.0";
 const ASSETS = [
   "./",
   "./index.html",

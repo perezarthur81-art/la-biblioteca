@@ -344,6 +344,46 @@ body {
 
 #plantilla:focus { outline: none; border-color: var(--verde-500); }
 
+/* ── Versión GRATIS / PRO ─────────────────────────────── */
+.badge-pro {
+  display: inline-block;
+  background: #FBBF24;
+  color: #78350F;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 8px;
+  border-radius: 999px;
+  letter-spacing: 1px;
+  vertical-align: middle;
+}
+
+.tarjeta-version { border: 1.5px solid var(--verde-100); }
+
+.pro-activar { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.pro-activar input {
+  flex: 1;
+  min-width: 200px;
+  padding: 11px 12px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.92rem;
+  text-transform: uppercase;
+}
+
+.pro-activar input:focus { outline: none; border-color: var(--verde-500); }
+
+.nota-pro {
+  background: var(--ambar-100);
+  color: var(--ambar);
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+#plantilla:disabled { opacity: 0.55; background: var(--fondo); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
 .pie {
   text-align: center;
   font-size: 0.75rem;

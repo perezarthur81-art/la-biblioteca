@@ -25,7 +25,28 @@ mensaje ya escrito.
 - **100 % offline** (service worker) y **sin servidores**: los datos viven solo
   en el dispositivo. Sin rastreadores ni llamadas externas (CSP estricta).
 
-## 2. Probar en la computadora
+## 2. Versión GRATIS y versión PRO (de pago)
+
+La misma app trae las dos versiones:
+
+| | GRATIS | PRO |
+|---|---|---|
+| Clientes | Hasta 15 | **Ilimitados** |
+| Recordatorios por WhatsApp | ✅ (mensaje estándar) | ✅ **mensaje personalizable** |
+| Panel Hoy, búsqueda, historial | ✅ | ✅ |
+| Copias de seguridad | ✅ | ✅ |
+
+**Cómo se vende la PRO:** el cliente paga como usted prefiera (efectivo,
+transferencia, etc.) y usted le entrega **un código de activación**
+(`BOTI-XXXX-XXXX`). Él lo escribe en **Ajustes → Versión → Activar PRO** y
+queda desbloqueada en ese dispositivo. No hace falta internet, ni pasarela de
+pago, ni suscripciones: nadie cobra comisión.
+
+Los códigos válidos los guarda solo el dueño (la app solo contiene sus huellas
+SHA-256, que no permiten deducir los códigos). Para generar más códigos, pida
+un lote nuevo y reemplace la lista `HUELLAS_PRO` en `app.js`.
+
+## 3. Probar en la computadora
 
 ```bash
 cd botifarma-recompra
@@ -34,7 +55,7 @@ python3 -m http.server 8000
 
 Abrir `http://localhost:8000`.
 
-## 3. Publicar en internet (para instalarla)
+## 4. Publicar en internet (para instalarla)
 
 Cualquiera de estas opciones gratis con HTTPS:
 
@@ -44,13 +65,13 @@ Cualquiera de estas opciones gratis con HTTPS:
 - **Netlify:** arrastrar la carpeta a https://app.netlify.com/drop
 - **GitHub Pages:** activar Pages sobre esta carpeta/repositorio.
 
-## 4. Instalar en cada dispositivo
+## 5. Instalar en cada dispositivo
 
 - **Android (Chrome):** URL → menú ⋮ → *Instalar app*.
 - **iPhone / iPad (Safari):** URL → Compartir → *Añadir a pantalla de inicio*.
 - **Windows / Mac (Chrome/Edge):** ícono de instalar en la barra de direcciones.
 
-## 5. Estructura
+## 6. Estructura
 
 ```
 botifarma-recompra/
