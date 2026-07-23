@@ -40,8 +40,9 @@ self.addEventListener("fetch", (event) => {
   // Solo manejamos peticiones de nuestro propio origen
   if (url.origin !== self.location.origin) return;
 
-  // BotiFarma vive en /botifarma/ con su propio service worker: no tocarla
-  if (url.pathname.startsWith("/botifarma")) return;
+  // BotiFarma vive en la carpeta botifarma/ con su propio service worker:
+  // no tocarla (funciona igual en la raíz del dominio o bajo una subruta)
+  if (url.pathname.includes("/botifarma")) return;
 
   // Navegaciones → servir index.html desde caché (offline-first)
   if (req.mode === "navigate") {
