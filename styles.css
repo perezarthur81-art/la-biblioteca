@@ -275,10 +275,17 @@ select.control { appearance: none; background-image: url("data:image/svg+xml,%3C
   backdrop-filter: blur(16px); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom);
 }
-.tabbar-in { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); }
+.tabbar-in { max-width: var(--maxw); margin: 0 auto; display: grid; grid-template-columns: repeat(5,1fr); }
 .tab {
+  position: relative;
   display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 11px 4px 9px;
   color: var(--muted); font-size: .66rem; letter-spacing: .02em;
+}
+.tab-badge {
+  position: absolute; top: 5px; left: calc(50% + 6px);
+  min-width: 17px; height: 17px; padding: 0 4px; border-radius: 999px;
+  background: var(--oxblood-hi); color: #fff; font-size: .62rem; font-weight: 700;
+  display: grid; place-items: center; line-height: 1; border: 2px solid var(--ink);
 }
 .tab svg { width: 23px; height: 23px; }
 .tab.active { color: var(--brass); }
@@ -321,8 +328,8 @@ select.control { appearance: none; background-image: url("data:image/svg+xml,%3C
 .row:first-of-type { border-top: none; }
 .row .ric { width: 20px; height: 20px; color: var(--brass); flex: none; }
 .row .rtxt { flex: 1; min-width: 0; }
-.row .rt { font-size: .95rem; }
-.row .rd { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+.row .rt { display: block; font-size: .95rem; }
+.row .rd { display: block; font-size: .78rem; color: var(--muted); margin-top: 2px; }
 .row .chev { width: 18px; height: 18px; color: var(--muted); flex: none; }
 .row.danger .rt, .row.danger .ric { color: var(--danger); }
 
@@ -385,6 +392,44 @@ select.control { appearance: none; background-image: url("data:image/svg+xml,%3C
 .mt-10 { margin-top: 10px; }
 .mt-14 { margin-top: 14px; }
 .mt-18 { margin-top: 18px; }
+.mb-14 { margin-bottom: 14px; }
 .mb-28 { margin-bottom: 28px; }
 .row.static, .static { cursor: default; }
 .pick-label { font-size: .8rem; color: var(--parch-dim); display: block; margin-bottom: 8px; }
+
+/* ---------- Avisos (WhatsApp) ---------- */
+.banner.banner-btn { width: 100%; text-align: left; cursor: pointer; align-items: center; transition: border-color .15s; }
+.banner.banner-btn:hover { border-color: var(--brass); }
+.nsec { margin-bottom: 26px; }
+.nsec-h {
+  display: flex; align-items: center; gap: 8px;
+  font-family: var(--serif); font-weight: 700; font-size: 1.08rem; color: var(--brass-hi);
+  margin-bottom: 10px;
+}
+.nsec-h svg { width: 19px; height: 19px; }
+.nsec-sub { color: var(--parch-dim); font-size: .88rem; margin-bottom: 10px; }
+.nsec-progress { font-family: var(--mono); font-size: .76rem; color: var(--muted); margin-bottom: 10px; letter-spacing: .06em; text-transform: uppercase; }
+.rcard.nrow { cursor: default; }
+.rcard.nrow:active { transform: none; }
+.rcard.nrow .rtime { width: 34px; color: var(--brass); display: grid; place-items: center; }
+.rcard.nrow .rtime svg { width: 22px; height: 22px; }
+.rcard.nrow .btn-sm { flex: none; width: auto; }
+.btn-sm.sent { color: var(--ok); border-color: rgba(91,154,110,.45); }
+
+/* ---------- Clientes: añadir fecha conmemorativa ---------- */
+.row.date-add { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.row.date-add input { grid-column: 1 / -1; }
+.row.date-add select { width: auto; padding-right: 34px; }
+.row.date-add .btn-sm { align-self: stretch; }
+@media (min-width: 460px) {
+  .row.date-add { grid-template-columns: 1fr auto auto auto; }
+  .row.date-add input { grid-column: auto; }
+}
+.chip.campday { min-width: 40px; text-align: center; font-weight: 700; }
+
+/* Interruptor ON/OFF en Ajustes */
+.segbtn { padding: 7px 14px; border-radius: 7px; font-size: .8rem; color: var(--parch-dim); font-weight: 700; }
+.segbtn.active { background: var(--brass); color: #1a1206; }
+
+/* Ícono activo en la barra superior (Ajustes) */
+.icon-btn.active { color: var(--brass); border-color: var(--line); background: var(--leather); }

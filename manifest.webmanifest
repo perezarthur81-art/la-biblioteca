@@ -13,6 +13,20 @@
   "background_color": "#0E0B08",
   "theme_color": "#0E0B08",
   "categories": ["business", "productivity", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Nueva reserva",
+      "short_name": "Nueva",
+      "url": "./?view=form",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Avisos de WhatsApp",
+      "short_name": "Avisos",
+      "url": "./?view=notify",
+      "icons": [{ "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
   "icons": [
     { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
