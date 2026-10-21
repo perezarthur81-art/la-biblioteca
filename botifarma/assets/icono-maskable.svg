@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10B981"/>
+      <stop offset="0.45" stop-color="#0B8F79"/>
+      <stop offset="1" stop-color="#053B32"/>
+    </linearGradient>
+    <radialGradient id="brillo" cx="0.28" cy="0.18" r="0.75">
+      <stop offset="0" stop-color="#A7F3D0" stop-opacity="0.55"/>
+      <stop offset="0.5" stop-color="#34D399" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="anillo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ECFDF5"/>
+      <stop offset="0.55" stop-color="#6EE7B7"/>
+      <stop offset="1" stop-color="#2DD4BF"/>
+    </linearGradient>
+    <linearGradient id="capsulaA" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#D1FAE5"/>
+    </linearGradient>
+    <linearGradient id="capsulaB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5EEAD4"/>
+      <stop offset="1" stop-color="#0D9488"/>
+    </linearGradient>
+    <filter id="neon" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="9" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="sombra" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#022C22" flood-opacity="0.45"/>
+    </filter>
+    <clipPath id="recorte"><rect width="512" height="512" rx="0"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#recorte)">
+    <rect width="512" height="512" fill="url(#fondo)"/>
+    <rect width="512" height="512" fill="url(#brillo)"/>
+    <!-- rejilla sutil, aire tecnológico -->
+    <g stroke="#FFFFFF" stroke-opacity="0.06" stroke-width="2">
+      <path d="M0 128H512M0 256H512M0 384H512M128 0V512M256 0V512M384 0V512"/>
+    </g>
+    <!-- borde interior luminoso -->
+    <rect x="6" y="6" width="500" height="500" rx="0" fill="none" stroke="#FFFFFF" stroke-opacity="0.18" stroke-width="3"/>
+  </g>
+
+  <g transform="translate(256 256) scale(0.74) translate(-256 -256)">
+    <!-- anillo de recompra: arco con punta de flecha, brillo neón -->
+    <g filter="url(#neon)">
+      <path d="M 256.0 92.0 A 164 164 0 1 1 116.9 169.1" fill="none" stroke="url(#anillo)" stroke-width="30" stroke-linecap="round"/>
+      <path d="M 83.2 155.1 L 144.5 125.0 L 144.3 193.3 Z" fill="#ECFDF5"/>
+      <circle cx="256" cy="92" r="19" fill="#ECFDF5"/>
+      <path d="M 256.0 92.0 A 164 164 0 1 1 116.9 169.1" fill="none" stroke="#FFFFFF" stroke-opacity="0.35" stroke-width="6" stroke-linecap="round" transform="translate(0 -9)"/>
+    </g>
+    <!-- puntos de órbita -->
+    <g fill="#A7F3D0" fill-opacity="0.9">
+      <circle cx="420" cy="118" r="7"/>
+      <circle cx="446" cy="152" r="4"/>
+    </g>
+    <!-- cápsula central -->
+    <g transform="rotate(-40 256 266)" filter="url(#sombra)">
+      <rect x="166" y="222" width="180" height="88" rx="44" fill="url(#capsulaA)"/>
+      <path d="M256 222 H302 A44 44 0 0 1 302 310 H256 Z" fill="url(#capsulaB)"/>
+      <rect x="182" y="238" width="64" height="12" rx="6" fill="#FFFFFF" fill-opacity="0.85"/>
+      <line x1="256" y1="222" x2="256" y2="310" stroke="#064E3B" stroke-opacity="0.25" stroke-width="3"/>
+    </g>
+    <!-- cruz pequeña: identidad de farmacia -->
+    <g transform="translate(372 352)">
+      <circle r="38" fill="#022C22" fill-opacity="0.55" stroke="#6EE7B7" stroke-opacity="0.8" stroke-width="3"/>
+      <path d="M-6 -20 H6 V-6 H20 V6 H6 V20 H-6 V6 H-20 V-6 H-6 Z" fill="#ECFDF5"/>
+    </g>
+  </g>
+</svg>

@@ -3,7 +3,7 @@
    Cachea la app completa para funcionar 100% sin conexión.
    Al cambiar la versión aquí, la app descarga la nueva y avisa en pantalla. */
 
-const CACHE = "botifarma-recompra-v1.3.0";
+const CACHE = "botifarma-recompra-v1.3.1";
 const ASSETS = [
   "./",
   "./index.html",

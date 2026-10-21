@@ -7,7 +7,7 @@ Mac**, con o sin conexión, en vertical y en horizontal.
 
 © 2026 **Juan Carlos Pérez Arthur**. Todos los derechos reservados.
 
-Versión actual: **1.3.0** · publicada en
+Versión actual: **1.3.1** · publicada en
 `https://perezarthur81-art.github.io/la-biblioteca/botifarma/`
 
 ---
@@ -180,13 +180,32 @@ botifarma/
 ├── sw.js                   Service worker (modo sin conexión y actualizaciones)
 ├── _headers                Cabeceras de seguridad (si se publica sola)
 ├── README.md               Este archivo
-├── assets/                 Íconos (192, 512, maskable, apple-touch, favicon)
+├── assets/                 Íconos (192, 512, maskable, apple-touch, favicon) y su SVG
+├── placa/                  Placa con código QR (PDF y PNG) para abrir la app con un toque
 └── tests/e2e.mjs           Pruebas de extremo a extremo
 ```
 
 ---
 
-## 7. Historial de versiones
+## 7. Placa con código QR
+
+En `placa/` está la **placa para imprimir** (`BotiFarma-placa-QR.pdf` y `.png`)
+con el código QR de la app: al apuntarle la cámara de la tablet o del celular,
+se abre la app con un toque. También está el QR solo (`BotiFarma-QR-solo.png`)
+para ponerlo en una tarjeta o en un afiche. Dirección pública de la placa:
+`https://perezarthur81-art.github.io/la-biblioteca/botifarma/placa/BotiFarma-placa-QR.pdf`
+
+---
+
+## 8. Historial de versiones
+
+### 1.3.1 — 21 de octubre de 2026
+
+- **Ícono nuevo** (anillo de recompra, cápsula y cruz de farmacia, estilo
+  moderno) en todos los tamaños, incluido el maskable de Android y el de iOS;
+  el origen vectorial está en `assets/icono.svg`
+- **Placa con código QR** para abrir o instalar la app con un toque (`placa/`)
+- El favicon deja de ir embebido: la app pesa 10 KB menos
 
 ### 1.3.0 — 21 de octubre de 2026
 
