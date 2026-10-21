@@ -18,9 +18,55 @@ hosting estático y queda lista para instalar como app.
 - Vista **Hoy**, libro completo con **búsqueda** y filtros
 - Estados: pendiente / confirmada / llegó / cancelada
 - Tarjeta de confirmación estilo ficha de biblioteca + compartir por **WhatsApp**
+- **Clientes con memoria propia** (v1.1): cada reserva registra al cliente
+  automáticamente; puedes añadirle **fechas conmemorativas** (cumpleaños,
+  aniversarios…) y notas
+- **Avisos de WhatsApp** (v1.1): la app detecta sola las fechas conmemorativas
+  de hoy y de los próximos 7 días, y prepara el mensaje de felicitación de cada
+  cliente — se envía con un toque
+- **Campaña de reservas** (v1.1): los **jueves, viernes y sábados** aparece la
+  lista de todos tus clientes con el mensaje "estamos activos, ¿quieres reservar?"
+  listo para enviar uno a uno, con contador de enviados
+- **Recordatorios** (v1.1): notificación en el dispositivo cuando hay mensajes
+  pendientes (y, en Android/Chrome con la app instalada, incluso con la app cerrada)
+- Plantillas de mensajes **personalizables** con variables `{nombre} {motivo} {fecha} {dia}`
 - **Bilingüe** español / inglés
 - **100% offline** (service worker)
 - **Cifrado AES-256-GCM** de los datos guardados
+
+### Cómo funcionan los avisos de WhatsApp (honesto)
+
+WhatsApp **no permite** que una app web envíe mensajes sola en segundo plano;
+eso requiere la API de pago "WhatsApp Business Platform" y un servidor. Lo que
+esta app hace es **automatizar todo lo demás**: detecta a quién hay que
+escribirle, redacta el mensaje con la plantilla, abre WhatsApp con el mensaje y
+el número ya puestos, y lleva el registro de a quién ya le enviaste. Tú solo
+tocas **Enviar** en cada cliente y confirmas en WhatsApp. Nada de copiar y pegar.
+
+### Paso a paso: fechas conmemorativas
+
+1. Pestaña **Clientes** → toca un cliente (o **Nuevo cliente**).
+2. En "Fechas conmemorativas" escribe el motivo (ej. *Cumpleaños*), elige día y
+   mes, y toca **Añadir**. Repite las que quieras por cliente.
+3. Cuando llegue la fecha (o falten pocos días), la pestaña **Avisos** mostrará
+   al cliente con su botón **Enviar**: se abre WhatsApp con la felicitación lista.
+
+### Paso a paso: campaña de jueves, viernes y sábado
+
+1. Registra tus clientes (se crean solos con cada reserva que tenga teléfono).
+2. Los jueves, viernes o sábados abre la pestaña **Avisos**: verás la lista
+   completa con el mensaje de campaña listo y el progreso "X de Y enviados".
+3. Toca **Enviar** cliente por cliente. Los enviados quedan marcados ✓ ese día.
+4. Los días de campaña se cambian en **Ajustes → Mensajes y campaña**.
+
+### Paso a paso: recordatorios
+
+1. **Ajustes → Avisos y WhatsApp → Recordatorios en este dispositivo** → acepta
+   el permiso de notificaciones.
+2. Al abrir la app un día con avisos pendientes, recibirás una notificación.
+   En Android/Chrome con la app instalada, el navegador puede avisarte incluso
+   con la app cerrada (el aviso en segundo plano nunca incluye nombres ni
+   teléfonos: solo "hay fechas hoy" o "hoy hay campaña").
 
 ---
 
@@ -102,6 +148,10 @@ Límites que debes conocer (ninguna app del lado del cliente puede prometer lo c
 - **Si olvidas la clave, los datos no se pueden recuperar.** Eso es justamente lo
   que los mantiene seguros. Haz **copias cifradas** (Ajustes → Exportar copia cifrada).
 - Los datos están en **ese** dispositivo. Otro teléfono no los ve (ver sección 7).
+- **Memoria propia:** la app pide al navegador **almacenamiento persistente**
+  (`navigator.storage.persist()`) para que no borre los datos por falta de
+  espacio. En **Ajustes → Datos → Memoria del dispositivo** ves si quedó
+  protegida. Aun así, haz copias cifradas de vez en cuando.
 - La protección de *cara al servidor* (control de acceso por usuario, registros de
   auditoría, multiusuario real) requiere backend. La versión actual es de **uso
   interno del local** y no expone una base de datos pública que se pueda "hackear".
