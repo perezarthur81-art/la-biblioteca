@@ -33,6 +33,9 @@ function servir() {
     const srv = createServer(async (req, res) => {
       try {
         let p = decodeURIComponent(new URL(req.url, "http://x").pathname);
+        // Simula una caída de la red para esta ruta (el modo sin conexión de
+        // Playwright no corta la red del service worker)
+        if (p.includes("__cortar__")) { req.socket.destroy(); return; }
         if (p.endsWith("/")) p += "index.html";
         const archivo = path.join(RAIZ, p);
         if (!archivo.startsWith(RAIZ)) throw new Error("fuera");
@@ -73,7 +76,8 @@ function dialogos(page) {
 }
 
 function vigilarConsola(page, errores) {
-  page.on("console", (m) => { if (m.type() === "error") errores.push(m.text()); });
+  // El 503 de la caída de red simulada (__cortar__) es esperado: no cuenta como error
+  page.on("console", (m) => { if (m.type() === "error" && !(m.location().url || "").includes("__cortar__")) errores.push(m.text()); });
   page.on("pageerror", (e) => errores.push("pageerror: " + e.message));
 }
 
@@ -109,7 +113,7 @@ const toast = (page) => page.textContent("#toast");
   let cola = dialogos(page);
   await page.goto(base, { waitUntil: "load" });
   await page.waitForTimeout(300);
-  igual(await page.textContent("#pie-version"), "BotiFarma — Recompra · v1.3.1", "versión en el pie");
+  igual(await page.textContent("#pie-version"), "BotiFarma — Recompra · v1.4.0", "versión en el pie");
   igual(await page.locator(".nav-btn").count(), 5, "cinco pestañas");
   igual(await page.isVisible("#hoy-vacio"), true, "estado vacío visible al inicio");
   await captura(page, "tablet-h-01-hoy-vacio");
@@ -225,7 +229,7 @@ const toast = (page) => page.textContent("#toast");
   await page.click('button[data-vista="ajustes"]');
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#btn-exportar")]);
   const copia = JSON.parse(await readFile(await dl.path(), "utf8"));
-  igual(copia.version, "1.3.1", "la copia lleva la versión");
+  igual(copia.version, "1.4.0", "la copia lleva la versión");
   igual(copia.clientes.length, 3, "la copia lleva los 3 clientes");
   igual(await page.evaluate(() => datos.ajustes.ultimaCopia === hoyISO()), true, "se anota la fecha de la copia");
 
@@ -470,18 +474,34 @@ const toast = (page) => page.textContent("#toast");
   const sw = await page.evaluate(async () => { const r = await navigator.serviceWorker.ready; return !!r.active; });
   ok(sw, "service worker activo");
   const cachesNombres = await page.evaluate(() => caches.keys());
-  ok(cachesNombres.includes("botifarma-recompra-v1.3.1"), "caché v1.3.1 creada");
+  ok(cachesNombres.includes("botifarma-recompra-v1.4.0"), "caché v1.4.0 creada");
   await ctx.setOffline(true);
   await page.reload({ waitUntil: "load" }); await page.waitForTimeout(300);
   igual(await page.title(), "BotiFarma — Recompra", "recarga sin conexión");
   igual(await page.textContent("#stat-clientes"), "1", "los datos siguen ahí sin conexión");
   await ctx.setOffline(false);
 
+  // Con la app ya en caché, la placa, la página de descarga y otros archivos se abren como lo que son
+  const rPlaca = await page.goto(base + "placa/BotiFarma-QR-solo.png");
+  ok(/image\/png/.test(rPlaca.headers()["content-type"] || ""), "la placa (PNG) se abre como imagen, no como la app");
+  // Un PDF hace que Chromium sin pantalla lo descargue: eso prueba que no se sirvió la app
+  const pdfComoArchivo = await page.goto(base + "placa/BotiFarma-placa-QR.pdf").then(
+    (r) => /application\/pdf/.test(r.headers()["content-type"] || ""),
+    (e) => /Download is starting/.test(e.message));
+  ok(pdfComoArchivo, "la placa PDF se abre/descarga como PDF, no como la app");
+  await page.goto(base + "descargar/"); await page.waitForTimeout(300);
+  igual(await page.title(), "Descargar BotiFarma Recompra", "la página de descarga se abre (no la app)");
+  await page.goto(base); await page.waitForTimeout(300);
+  igual(await page.textContent("#stat-clientes"), "1", "la app sigue abriendo con sus datos");
+  const rSin = await page.goto(base + "__cortar__.txt").catch(() => null);
+  ok(rSin && rSin.status() === 503 && (await rSin.text()).includes("Sin conexión"), "sin red, un archivo no guardado responde «Sin conexión» en vez de la app");
+  await page.goto(base); await page.waitForTimeout(400);
+
   // Actualización: cambia sw.js en disco → la app avisa
   const swRuta = path.join(RAIZ, "sw.js");
   const swOriginal = await readFile(swRuta, "utf8");
   try {
-    await writeFile(swRuta, swOriginal.replace('v1.3.1"', 'v1.3.1-prueba"'));
+    await writeFile(swRuta, swOriginal.replace('v1.4.0"', 'v1.4.0-prueba"'));
     await page.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update(); });
     await page.waitForSelector("#aviso-actualizar:not(.oculto)", { timeout: 10000 });
     ok(true, "aviso de nueva versión al cambiar el service worker");
@@ -491,6 +511,107 @@ const toast = (page) => page.textContent("#toast");
     await writeFile(swRuta, swOriginal);
   }
   await ctx.close();
+
+  /* ───────── 7b. Instalación con un toque, marca blanca y recomendar ───────── */
+  console.log("\n7b. Instalación, marca blanca y página de descarga");
+  ctx = await browser.newContext({ viewport: { width: 800, height: 1280 }, isMobile: true, hasTouch: true, locale: "es-DO", timezoneId: "America/Santo_Domingo",
+    userAgent: "Mozilla/5.0 (Linux; Android 14; SM-X210) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36" });
+  page = await ctx.newPage(); vigilarConsola(page, errores); cola = dialogos(page);
+  await page.goto(base); await page.waitForTimeout(300);
+  igual(await page.isVisible("#guia-instalar"), true, "la guía de instalación sale al abrir en el navegador");
+  ok((await page.textContent("#guia-instalar-pasos")).includes("menú ⋮"), "en Android explica el menú ⋮ → Instalar app");
+  igual(await page.isVisible("#btn-guia-instalar"), false, "sin aviso del navegador no hay botón de un toque");
+  // El navegador ofrece instalar (beforeinstallprompt simulado)
+  await page.evaluate(() => {
+    window.__promptLlamado = false;
+    const ev = new Event("beforeinstallprompt");
+    ev.prompt = () => { window.__promptLlamado = true; };
+    ev.userChoice = Promise.resolve({ outcome: "accepted" });
+    window.dispatchEvent(ev);
+  });
+  igual(await page.isVisible("#btn-guia-instalar"), true, "con el aviso del navegador aparece el botón «Instalar»");
+  await page.click("#btn-guia-instalar"); await page.waitForTimeout(100);
+  igual(await page.evaluate(() => window.__promptLlamado), true, "«Instalar» abre el diálogo de instalación del navegador");
+  await page.evaluate(() => window.dispatchEvent(new Event("appinstalled"))); await page.waitForTimeout(100);
+  ok((await toast(page)).includes("instalada"), "aviso «¡App instalada!»");
+  // Cerrar la guía: no vuelve hasta 14 días después
+  await page.click("#btn-guia-cerrar"); await page.waitForTimeout(100);
+  igual(await page.isVisible("#guia-instalar"), false, "✕ cierra la guía");
+  await page.reload(); await page.waitForTimeout(300);
+  igual(await page.isVisible("#guia-instalar"), false, "cerrada, no vuelve al recargar");
+  await page.evaluate(() => localStorage.setItem("botifarma_guia_instalar_cerrada", sumarDias(hoyISO(), -15)));
+  await page.reload(); await page.waitForTimeout(300);
+  igual(await page.isVisible("#guia-instalar"), true, "a los 15 días la guía vuelve a salir");
+  // Marca blanca: el nombre de la farmacia sale en la cabecera y en el título
+  await page.click('button[data-vista="ajustes"]');
+  await page.fill("#f-farmacia", "Farmacia San José"); await page.click("#btn-farmacia"); await page.waitForTimeout(100);
+  igual(await page.textContent("#cabecera-nombre"), "Farmacia San José", "la cabecera muestra el nombre de la farmacia");
+  igual(await page.title(), "Farmacia San José — Recompra", "el título de la ventana usa el nombre de la farmacia");
+  // Recomendar a otra farmacia: sin Web Share, abre WhatsApp con el enlace de la página de descarga
+  await page.evaluate(() => { try { Object.defineProperty(navigator, "share", { value: undefined, configurable: true }); } catch (e) {} });
+  const [wa] = await Promise.all([ctx.waitForEvent("page"), page.click("#btn-recomendar")]);
+  ok(decodeURIComponent(wa.url()).includes(base + "descargar/"), "«Recomendar» comparte el enlace de la página de descarga");
+  await wa.close();
+  await captura(page, "tablet-v-03-ajustes-instalar");
+  await ctx.close();
+
+  // iPhone: la guía explica Compartir → Añadir a pantalla de inicio; ya instalada, no sale
+  ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, locale: "es-DO",
+    userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.5 Mobile/15E148 Safari/604.1" });
+  page = await ctx.newPage(); vigilarConsola(page, errores); dialogos(page);
+  await page.goto(base); await page.waitForTimeout(300);
+  ok((await page.textContent("#guia-instalar-pasos")).includes("Compartir"), "en iPhone explica Compartir → Añadir a pantalla de inicio");
+  await captura(page, "celular-04-guia-iphone");
+  await page.goto(base + "descargar/"); await page.waitForTimeout(400);
+  const primera = await page.locator(".equipo-col").first().getAttribute("data-equipo");
+  igual(primera, "ios", "la página de descarga pone primero las instrucciones de iPhone/iPad");
+  ok((await page.textContent(".equipo-col.suyo")).includes("Su equipo"), "y las marca como «Su equipo»");
+  await page.click('a[href="#instalar"]'); await page.waitForTimeout(100);
+  igual(await page.isVisible("#hoja"), true, "en iPhone «Cómo instalarla» abre la hoja de pasos");
+  await captura(page, "celular-05-descargar-iphone");
+  await page.click("#hoja-cerrar");
+  await ctx.close();
+
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "es-DO" });
+  await ctx.addInitScript(() => {
+    const mm = window.matchMedia.bind(window);
+    window.matchMedia = (q) => q.includes("display-mode: standalone") ? { matches: true, media: q, addEventListener() {}, removeEventListener() {} } : mm(q);
+  });
+  page = await ctx.newPage(); vigilarConsola(page, errores); dialogos(page);
+  await page.goto(base); await page.waitForTimeout(300);
+  igual(await page.isVisible("#guia-instalar"), false, "instalada como app, la guía no sale");
+  await page.click('button[data-vista="ajustes"]');
+  ok((await page.textContent("#instalar-pasos")).includes("Ya está instalada"), "Ajustes dice «Ya está instalada en este equipo»");
+  await ctx.close();
+
+  // Página de descarga en computadora: botón de un toque cuando el navegador lo ofrece
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "es-DO" });
+  page = await ctx.newPage(); vigilarConsola(page, errores); dialogos(page);
+  await page.goto(base + "descargar/"); await page.waitForTimeout(400);
+  igual(await page.locator("#dias line").count(), 30, "el anillo del tratamiento tiene 30 días");
+  igual(await page.getAttribute("#boton-principal", "href"), "../", "«Abrir la app» lleva a la app");
+  await page.evaluate(() => {
+    window.__promptLlamado = false;
+    const ev = new Event("beforeinstallprompt");
+    ev.prompt = () => { window.__promptLlamado = true; };
+    ev.userChoice = Promise.resolve({ outcome: "accepted" });
+    window.dispatchEvent(ev);
+  });
+  igual((await page.textContent("#boton-principal-texto")).trim(), "Instalar la app", "con el aviso del navegador el botón pasa a «Instalar la app»");
+  await page.click("#boton-principal"); await page.waitForTimeout(100);
+  igual(await page.evaluate(() => window.__promptLlamado), true, "un toque instala desde la página de descarga");
+  ok(page.url().endsWith("/descargar/"), "y no navega fuera mientras instala");
+  await captura(page, "computadora-01-descargar");
+  const hScroll = await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth);
+  igual(hScroll, false, "la página de descarga no tiene scroll horizontal en computadora");
+  await ctx.close();
+  for (const w of [320, 390]) {
+    ctx = await browser.newContext({ viewport: { width: w, height: 800 }, isMobile: true, hasTouch: true, locale: "es-DO" });
+    page = await ctx.newPage(); vigilarConsola(page, errores);
+    await page.goto(base + "descargar/"); await page.waitForTimeout(300);
+    igual(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false, `la página de descarga no tiene scroll horizontal a ${w} px`);
+    await ctx.close();
+  }
 
   /* ───────── 8. Convivencia con La Biblioteca (mismo origen) ───────── */
   console.log("\n8. Service worker de la raíz");
