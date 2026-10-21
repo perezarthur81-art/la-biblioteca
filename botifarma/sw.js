@@ -1,8 +1,9 @@
 /* BotiFarma — Recompra · Service Worker
    © 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.
-   Cachea la app completa para funcionar 100% sin conexión. */
+   Cachea la app completa para funcionar 100% sin conexión.
+   Al cambiar la versión aquí, la app descarga la nueva y avisa en pantalla. */
 
-const CACHE = "botifarma-recompra-v1.2.0";
+const CACHE = "botifarma-recompra-v1.3.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -37,10 +38,17 @@ self.addEventListener("fetch", (event) => {
   // Solo manejamos peticiones de nuestro propio origen y dentro de la app
   if (url.origin !== self.location.origin) return;
 
-  // Navegaciones → servir index.html desde caché (offline-first)
+  // Navegaciones → servir index.html desde caché (offline-first) y, si no
+  // está, pedirlo a la red y guardarlo
   if (req.mode === "navigate") {
     event.respondWith(
-      caches.match("./index.html").then((cached) => cached || fetch(req))
+      caches.match("./index.html").then((cached) => cached || fetch(req).then((res) => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((cache) => cache.put("./index.html", copy));
+        }
+        return res;
+      }))
     );
     return;
   }
@@ -55,7 +63,13 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE).then((cache) => cache.put(req, copy));
         }
         return res;
-      }).catch(() => cached);
+      }).catch(() =>
+        // sin red y sin caché: para documentos devolvemos la app,
+        // para el resto una respuesta vacía con estado "sin conexión"
+        req.destination === "document"
+          ? caches.match("./index.html")
+          : new Response("", { status: 503, statusText: "offline" })
+      );
     })
   );
 });

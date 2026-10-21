@@ -6,6 +6,11 @@ funciona en **Android, iPhone, iPad, Windows y Mac**, sin conexión, y que
 
 © 2026 **Juan Carlos Pérez Arthur**. Todos los derechos reservados.
 
+> Este repositorio también publica **BotiFarma — Recompra** (gestor de
+> recompras para farmacias, con WhatsApp, panel de resultados y bloqueo con
+> clave) en la carpeta [`botifarma/`](botifarma/README.md), disponible en
+> `https://perezarthur81-art.github.io/la-biblioteca/botifarma/`.
+
 ---
 
 ## 1. Qué es esto
@@ -195,5 +200,7 @@ la-biblioteca/
 ├── _headers                Cabeceras de seguridad (Cloudflare/Netlify)
 ├── LICENSE.txt             Licencia propietaria
 ├── README.md               Este archivo
-└── assets/                 Íconos (192, 512, maskable, apple-touch, favicon)
+├── package.json            Solo para correr las pruebas (npm test)
+├── assets/                 Íconos (192, 512, maskable, apple-touch, favicon)
+└── botifarma/              BotiFarma — Recompra (app independiente, ver su README)
 ```
