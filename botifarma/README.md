@@ -27,10 +27,14 @@ Versión actual: **1.3.0** · publicada en
   **exportación a Excel (CSV)**
 - **Ritmo real**: cuando un cliente lleva 3 o más compras, la app calcula cada
   cuántos días vuelve de verdad y ofrece ajustar la frecuencia con un toque
-- **Copia de seguridad**: exportar, compartir (WhatsApp/Drive) e importar;
-  la app recuerda hacerla cada semana
+- **Copia de seguridad**: exportar, compartir (WhatsApp/Drive) e importar
+  (reemplazando o añadiendo, con «Deshacer»); la app recuerda hacerla cada
+  semana; con el bloqueo activo la copia puede salir **cifrada**
 - **Bloqueo con clave** opcional: los datos quedan **cifrados (AES-256-GCM)** en
-  el dispositivo y la app pide la clave al abrirla y tras un rato sin uso
+  el dispositivo y la app pide la clave al abrirla y tras un rato sin uso; si
+  se olvida la clave, los datos se apartan (no se destruyen) y se recuperan
+  cuando se recuerde
+- **✓ Compró** y las importaciones tienen botón **Deshacer**
 - Versión **GRATIS** (hasta 15 clientes) y **PRO** por código de activación
 - Los datos viven **solo en el dispositivo**; nada sale a internet
 
@@ -46,15 +50,17 @@ Versión actual: **1.3.0** · publicada en
 3. Menú **⋮ → Instalar app** (o «Añadir a pantalla de inicio»). Aparece el
    ícono de BotiFarma en el escritorio; ábrala desde ahí.
 4. **Ajustes → Nombre de la farmacia**: escriba el nombre que saldrá en los mensajes.
-5. **Ajustes → Bloqueo con clave**: active una clave (mínimo 4 caracteres). La
-   tablet queda en el mostrador, así que esto protege a sus pacientes.
-   Anote la clave en un lugar seguro: sin ella los datos no se recuperan.
-6. **Ajustes → Versión**: si tiene código PRO, actívelo (más de 15 clientes y
+5. **Ajustes → Bloqueo con clave**: active una clave (mínimo 6 caracteres, sin
+   secuencias como 123456). La tablet queda en el mostrador, así que esto
+   protege a sus pacientes. Anote la clave en un lugar seguro.
+6. Cierre la pestaña de Chrome y use siempre el ícono instalado (si la app está
+   abierta en dos sitios a la vez, se sincronizan, pero es mejor usar una sola).
+7. **Ajustes → Versión**: si tiene código PRO, actívelo (más de 15 clientes y
    mensaje personalizable).
-7. Registre los primeros clientes en **Nuevo**. Pregunte siempre
+8. Registre los primeros clientes en **Nuevo**. Pregunte siempre
    *«¿le aviso por WhatsApp cuando le toque?»* y deje marcada la casilla de
    consentimiento solo si dice que sí.
-8. Al final de la primera semana, **Ajustes → Exportar copia** (o Compartir
+9. Al final de la primera semana, **Ajustes → Exportar copia** (o Compartir
    copia a su propio WhatsApp). La app se lo recordará cada 7 días.
 
 Cada mañana: abrir la app → pestaña **Hoy** → tocar **WhatsApp** en cada
@@ -68,12 +74,16 @@ aviso «Hay una versión nueva» y basta tocar **Actualizar ahora**.
 
 ## 3. Otras formas de usarla
 
-### A. Abrir el archivo directamente
+### A. Abrir el archivo directamente (solo en computadora)
 
-Copie `index.html` al teléfono o computadora y ábralo con Chrome, Edge o
-Safari. Todo funciona: clientes, WhatsApp, copias, panel, bloqueo (en Chrome).
-Lo único que no aplica en este modo es la instalación como app y el modo sin
-conexión automático.
+Copie `index.html` a la computadora y ábralo con Chrome o Edge. Todo funciona:
+clientes, WhatsApp Web, copias y panel. Lo que no aplica en este modo es la
+instalación como app y el modo sin conexión automático.
+
+**En Android no use este modo**: al abrir el archivo desde el gestor de
+archivos, Chrome no deja guardar datos (la app lo avisa con un cartel rojo y
+todo se pierde al cerrarla). En la tablet use siempre la dirección `https://…`
+o la app instalada.
 
 ### B. Publicarla en otro hosting (HTTPS)
 
@@ -102,10 +112,26 @@ y abra `http://localhost:8080`.
 - **Dónde viven los datos**: solo en el navegador del dispositivo
   (`localStorage`). No hay servidor ni cuenta; nadie más los ve.
 - **Bloqueo con clave**: la clave se convierte en una llave AES-256 con PBKDF2
-  (200 000 iteraciones, sal aleatoria). Sin la clave, lo guardado es ilegible.
-  Al activar el bloqueo, los datos en claro se borran del dispositivo.
-- **Copias de seguridad**: el archivo JSON **no va cifrado**, para poder
-  restaurarlo aunque olvide la clave. Guárdelo como un documento confidencial.
+  (200 000 iteraciones, sal aleatoria) y los datos se guardan cifrados. Protege
+  contra miradas y manos ajenas en el mostrador; contra un experto con el
+  dispositivo en su poder, lo que protege es la longitud de la clave (mínimo 6,
+  mejor 10 o más, y sin secuencias). Al activar el bloqueo, los datos en claro
+  se borran del dispositivo. Mientras se activa, cambia o desactiva la clave,
+  la app no puede bloquearse (evita vaciar los datos a medias).
+- **Clave olvidada**: «¿Olvidó la clave?» exige escribir BORRAR y **aparta** el
+  baúl cifrado en vez de destruirlo; si más adelante recuerda la clave, en
+  Ajustes → Bloqueo puede recuperar esos clientes y añadirlos a la lista.
+- **Copias de seguridad**: con el bloqueo activo, al exportar elige entre copia
+  **cifrada** (solo se abre con su clave) o **sin cifrar** (sirve aunque olvide
+  la clave). Sin bloqueo, la copia va sin cifrar. Trate toda copia como un
+  documento confidencial. El CSV para Excel siempre va en claro.
+- **Dos ventanas**: si la app está abierta en dos pestañas o ventanas del
+  mismo dispositivo, los cambios de una se reflejan en la otra al instante.
+- **Mismo origen que La Biblioteca**: en GitHub Pages ambas apps comparten el
+  origen `perezarthur81-art.github.io`, y el almacenamiento del navegador es
+  por origen. Hoy no hay terceros en ese origen; cuando BotiFarma se venda a
+  otras farmacias conviene publicarla en su propio dominio (Cloudflare Pages
+  o Netlify, el `_headers` ya está listo).
 - **Consentimiento**: cada ficha guarda si el cliente aceptó recibir
   recordatorios y la fecha. El mensaje estándar incluye «responda BAJA»; si un
   cliente lo pide, edite su ficha y desmarque la casilla.
@@ -117,7 +143,10 @@ y abra `http://localhost:8080`.
   si tenía PRO, vuelva a introducir su código nuevo.
 - **Almacenamiento persistente**: la app pide al navegador que no borre los
   datos por falta de espacio (en Ajustes se ve si lo concedió; instalarla como
-  app ayuda).
+  app ayuda). Si el navegador no deja guardar (archivo abierto desde el gestor
+  de archivos, modo incógnito), la app lo avisa con un cartel rojo permanente.
+- **CSV**: las celdas que empiezan por `=`, `+`, `-` o `@` se neutralizan para
+  que Excel no las ejecute como fórmulas.
 
 ---
 
@@ -125,13 +154,17 @@ y abra `http://localhost:8080`.
 
 La app se prueba en un navegador real (Chromium, con Playwright) en tres
 tamaños: tablet horizontal, tablet vertical y celular. Las pruebas registran
-clientes, envían WhatsApp, verifican el panel, exportan e importan copias,
-migran datos de la v1.2, activan PRO, cifran con clave, bloquean por
-inactividad, recargan sin conexión y comprueban el aviso de actualización.
+clientes, envían WhatsApp, deshacen compras, verifican el panel y el CSV,
+exportan e importan copias (en claro y cifradas), migran datos de la v1.2,
+activan PRO, cifran con clave, bloquean por inactividad, fuerzan la carrera
+«cambiar clave + bloquear», recuperan un baúl de clave olvidada, abren dos
+ventanas a la vez, simulan un navegador que no deja guardar, recargan sin
+conexión y comprueban el aviso de actualización. Se sirven desde una copia
+temporal, así que nunca tocan los archivos del repositorio.
 
 ```bash
 npm install
-npm test                         # 76 comprobaciones
+npm test                         # 102 comprobaciones
 CODIGO_PRO=BOTI-XXXX-XXXX-XXXX npm test   # además prueba un código PRO real
 npm run test:capturas            # guarda capturas en botifarma/tests/capturas/
 ```
@@ -171,13 +204,18 @@ botifarma/
 - Copias: **compartir** por WhatsApp/Drive, recordatorio semanal, importar en
   modo **reemplazar** o **añadir** sin duplicar, fecha de la última copia
 - Se cierra el hueco que permitía activar PRO copiando una huella del código
-  fuente; códigos nuevos de 12 caracteres
+  fuente; códigos nuevos de 12 caracteres (se aceptan con o sin guiones)
+- Botón **Deshacer** en ✓ Compró y en las importaciones; copias cifradas con
+  el bloqueo activo; clave olvidada recuperable; sincronización entre ventanas;
+  aviso cuando el navegador no deja guardar; CSV a prueba de fórmulas
+- El service worker de La Biblioteca ya no borra la caché de BotiFarma (misma
+  dirección web); BotiFarma vuelve a sembrar su caché si desaparece
 - Aviso de **nueva versión** con botón Actualizar; almacenamiento persistente;
   la lista «Hoy» se refresca sola al cambiar el día
 - Validaciones: teléfono incompleto y fecha de compra futura; «✓ Compró» dos
   veces el mismo día no duplica
 - Atajos del ícono (mantener pulsado): Nuevo cliente y Panel
-- Pruebas automáticas en navegador real (76 comprobaciones)
+- Pruebas automáticas en navegador real (102 comprobaciones)
 
 ### 1.2.0 — 23 de julio de 2026
 

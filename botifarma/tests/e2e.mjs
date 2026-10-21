@@ -11,13 +11,17 @@
 
 import { chromium } from "playwright";
 import { createServer } from "node:http";
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { readFile, writeFile, mkdir, cp, rm, mkdtemp, unlink } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const RAIZ = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const CAPTURAS = process.env.CAPTURAS ? path.join(RAIZ, "tests", "capturas") : null;
+const CARPETA_APP = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+/* La app se sirve desde una copia temporal: así la prueba de actualización
+   (que reescribe sw.js) nunca toca los archivos del repositorio */
+const RAIZ = await mkdtemp(path.join(tmpdir(), "botifarma-e2e-"));
+await cp(CARPETA_APP, RAIZ, { recursive: true, filter: (src) => !src.includes(path.sep + "tests") });
+const CAPTURAS = process.env.CAPTURAS ? path.join(CARPETA_APP, "tests", "capturas") : null;
 const CODIGO_PRO = process.env.CODIGO_PRO || "";
 
 const TIPOS = { ".html": "text/html; charset=utf-8", ".js": "text/javascript", ".webmanifest": "application/manifest+json",
@@ -56,12 +60,14 @@ async function captura(page, nombre) {
   await page.screenshot({ path: path.join(CAPTURAS, nombre + ".png"), fullPage: true });
 }
 
-/* Cola de respuestas para confirm()/alert(): true = Aceptar, false = Cancelar */
+/* Cola de respuestas para confirm()/alert()/prompt(): true = Aceptar,
+   false = Cancelar, texto = lo que se escribe en un prompt */
 function dialogos(page) {
   const cola = [];
   page.on("dialog", async (d) => {
     const r = cola.length ? cola.shift() : true;
-    if (r) await d.accept(); else await d.dismiss();
+    if (typeof r === "string") await d.accept(r);
+    else if (r) await d.accept(); else await d.dismiss();
   });
   return cola;
 }
@@ -130,6 +136,11 @@ const toast = (page) => page.textContent("#toast");
   await page.waitForTimeout(100);
   igual(await page.textContent("#stat-vencidas"), "0", "✓ Compró reinicia el ciclo");
   ok((await toast(page)).includes("Recompra registrada"), "aviso de recompra registrada");
+  // Deshacer
+  await page.click("#toast .toast-accion"); await page.waitForTimeout(100);
+  igual(await page.textContent("#stat-vencidas"), "1", "«Deshacer» devuelve la recompra anterior");
+  igual(await page.evaluate(() => datos.clientes.find((c) => c.nombre === "Pedro Gómez").historial.length), 0, "«Deshacer» quita la fecha del historial");
+  await page.click("#hoy-listas .tc-vencida .btn-compro"); await page.waitForTimeout(100);
   // Compró dos veces el mismo día no duplica
   await page.click('button[data-vista="clientes"]');
   await page.locator("#clientes-lista .tarjeta-cliente", { hasText: "Pedro Gómez" }).locator(".btn-compro").click();
@@ -161,6 +172,11 @@ const toast = (page) => page.textContent("#toast");
   // Editar: consentimiento vuelve a sí
   await tarjetaAna.locator(".btn-editar").click();
   igual(await page.isChecked("#f-consiente"), false, "el formulario recuerda el consentimiento");
+  await page.click('button[data-vista="hoy"]');
+  await page.click('button[data-vista="nuevo"]');
+  igual(await page.inputValue("#f-nombre"), "", "la pestaña Nuevo nunca conserva una edición anterior");
+  await page.click('button[data-vista="clientes"]');
+  await tarjetaAna.locator(".btn-editar").click();
   await page.check("#f-consiente");
   await page.click("#btn-guardar"); await page.waitForTimeout(80);
   const ana = await page.evaluate(() => datos.clientes.find((c) => c.nombre === "Ana Sin").consentimiento);
@@ -195,6 +211,14 @@ const toast = (page) => page.textContent("#toast");
   ok(csvTexto.startsWith("﻿Nombre,Teléfono,Producto"), "CSV con BOM y cabecera");
   igual(csvTexto.trim().split("\r\n").length, 4, "CSV con 3 clientes");
   ok(csvTexto.includes("María Rodríguez,809-555-1234,Losartán 50 mg,27"), "fila de María en el CSV");
+  await page.evaluate(() => {
+    const c = datos.clientes.find((x) => x.nombre === "Pedro Gómez");
+    c.tel = "+1 829 555 0000"; c.notas = '=HYPERLINK("http://x";"abrir")'; guardarDatos(); pintarTodo();
+  });
+  const [csv2] = await Promise.all([page.waitForEvent("download"), page.click("#btn-csv")]);
+  const csvTexto2 = await readFile(await csv2.path(), "utf8");
+  ok(csvTexto2.includes("Pedro Gómez,'+1 829 555 0000,"), "teléfono con + neutralizado en el CSV");
+  ok(csvTexto2.includes("\"'=HYPERLINK(\"\"http://x\"\";\"\"abrir\"\")\""), "fórmula en nota neutralizada y entrecomillada");
 
   /* ───────── 3. Copias: exportar, importar (reemplazar y añadir) ───────── */
   console.log("\n3. Copias de seguridad");
@@ -207,7 +231,7 @@ const toast = (page) => page.textContent("#toast");
 
   // Importar en modo AÑADIR (segundo confirm = Cancelar) con un cliente nuevo y uno repetido
   const copiaExtra = { clientes: [copia.clientes[0], { nombre: "Luis Nuevo", producto: "Atorvastatina 20 mg", tel: "8095550002", dias: 30, ultima: copia.clientes[0].ultima }] };
-  const archivoTmp = path.join(RAIZ, "tests", "_copia-prueba.json");
+  const archivoTmp = path.join(RAIZ, "_copia-prueba.json");
   await writeFile(archivoTmp, JSON.stringify(copiaExtra));
   cola.push(true, false);
   await page.setInputFiles("#archivo-importar", archivoTmp);
@@ -233,7 +257,7 @@ const toast = (page) => page.textContent("#toast");
   await page.goto(base);
   await page.evaluate(() => {
     localStorage.setItem("botifarma_recompra_v1", JSON.stringify({
-      clientes: [{ id: "abc", nombre: "Viejo Cliente", producto: "Amlodipino 5 mg", tel: "8095550003", dias: 30, ultima: "2026-10-01", notas: "", historial: ["2026-10-01"] }],
+      clientes: [{ id: "abc", nombre: "Viejo Cliente", producto: "Amlodipino 5 mg", tel: "8095550003", dias: 30, ultima: "2026-10-01", notas: "", historial: ["2026-10-01", "2026-02-31", "2026-13-99"] }],
       plantilla: "Hola {nombre} 👋, le saluda BotiFarma. Le recordamos que ya le toca la recompra de {producto} (cada {dias} días). ¿Se lo preparamos? ¡Le esperamos! 💚",
     }));
     localStorage.setItem("botifarma_pro_v1", "02e2d941106b7bf563d897f4379b64f6190d517d09218221755cb0ea4996efc5");
@@ -241,6 +265,7 @@ const toast = (page) => page.textContent("#toast");
   await page.reload(); await page.waitForTimeout(300);
   const viejo = await page.evaluate(() => datos.clientes[0]);
   ok(viejo && viejo.consentimiento.acepta === true && viejo.precio === 0 && viejo.creado === "2026-10-01", "ficha v1.2 normalizada (consentimiento, precio, creado)");
+  igual(viejo.historial.length, 1, "las fechas imposibles (2026-02-31, 2026-13-99) se descartan");
   igual(await page.evaluate(() => datos.plantilla.includes("{farmacia}") && datos.plantilla.includes("BAJA")), true, "plantilla estándar v1.2 modernizada");
   igual(await page.evaluate(() => localStorage.getItem("botifarma_pro_v1")), null, "clave PRO antigua eliminada");
   igual(await page.isVisible("#badge-pro"), false, "la huella antigua ya no activa PRO");
@@ -267,9 +292,9 @@ const toast = (page) => page.textContent("#toast");
   igual(await page.evaluate(() => localStorage.getItem("botifarma_pro_v2")), null, "la huella falsa se borra");
   if (CODIGO_PRO) {
     await page.click('button[data-vista="ajustes"]');
-    await page.fill("#codigo-pro", CODIGO_PRO.toLowerCase());
+    await page.fill("#codigo-pro", CODIGO_PRO.toLowerCase().replace(/-/g, " "));
     await page.click("#btn-activar-pro"); await page.waitForTimeout(300);
-    igual(await page.isVisible("#badge-pro"), true, "código real activa PRO (aunque se escriba en minúsculas)");
+    igual(await page.isVisible("#badge-pro"), true, "código real activa PRO (en minúsculas y sin guiones)");
     await page.reload(); await page.waitForTimeout(300);
     igual(await page.isVisible("#badge-pro"), true, "PRO sigue activo tras recargar");
     await nuevoCliente(page, { nombre: "Cliente 16", producto: "Producto 16" });
@@ -289,10 +314,13 @@ const toast = (page) => page.textContent("#toast");
   await page.goto(base); await page.waitForTimeout(200);
   await nuevoCliente(page, { nombre: "Secreto Paciente", tel: "8095550009", producto: "Insulina", dias: 30, haceDias: 10 });
   await page.click('button[data-vista="ajustes"]');
-  await page.fill("#clave-nueva", "123"); await page.fill("#clave-nueva2", "123");
+  await page.fill("#clave-nueva", "12345"); await page.fill("#clave-nueva2", "12345");
   await page.click("#btn-activar-bloqueo"); await page.waitForTimeout(100);
-  ok((await toast(page)).includes("al menos 4"), "clave de 3 caracteres rechazada");
-  await page.fill("#clave-nueva", "1234"); await page.fill("#clave-nueva2", "1234");
+  ok((await toast(page)).includes("al menos 6"), "clave de 5 caracteres rechazada");
+  await page.fill("#clave-nueva", "123456"); await page.fill("#clave-nueva2", "123456");
+  await page.click("#btn-activar-bloqueo"); await page.waitForTimeout(100);
+  ok((await toast(page)).includes("secuencia"), "clave 123456 rechazada");
+  await page.fill("#clave-nueva", "farmacia7"); await page.fill("#clave-nueva2", "farmacia7");
   await page.click("#btn-activar-bloqueo");
   await page.waitForSelector("#bloqueo-activo:not(.oculto)", { timeout: 15000 });
   const claves = await page.evaluate(() => ({ plano: localStorage.getItem("botifarma_recompra_v1"), baul: localStorage.getItem("botifarma_baul_v1"), meta: localStorage.getItem("botifarma_meta_v1") }));
@@ -308,10 +336,10 @@ const toast = (page) => page.textContent("#toast");
   igual(await page.isVisible("#bloqueo"), true, "al recargar aparece la pantalla de bloqueo");
   igual(await page.evaluate(() => datos), null, "sin clave no hay datos en memoria");
   await captura(page, "tablet-h-07-bloqueo");
-  await page.fill("#bloqueo-clave", "0000"); await page.click("#btn-desbloquear");
+  await page.fill("#bloqueo-clave", "000000"); await page.click("#btn-desbloquear");
   await page.waitForSelector("#bloqueo-error:not(:empty)", { timeout: 15000 });
   ok((await page.textContent("#bloqueo-error")).includes("incorrecta"), "clave incorrecta avisada");
-  await page.fill("#bloqueo-clave", "1234"); await page.press("#bloqueo-clave", "Enter");
+  await page.fill("#bloqueo-clave", "farmacia7"); await page.press("#bloqueo-clave", "Enter");
   await page.waitForFunction(() => document.querySelector("#bloqueo").classList.contains("oculto"), null, { timeout: 15000 });
   igual(await page.evaluate(() => datos.clientes.length), 2, "con la clave correcta se recuperan los 2 clientes");
   igual(await page.textContent("#stat-clientes"), "2", "la pantalla se pinta tras desbloquear");
@@ -325,38 +353,104 @@ const toast = (page) => page.textContent("#toast");
   await page.waitForTimeout(100);
   igual(await page.isVisible("#bloqueo"), true, "se bloquea al volver tras 20 min oculta");
   igual((await page.textContent("#clientes-lista")).trim(), "", "la lista queda vacía mientras está bloqueada");
-  await page.fill("#bloqueo-clave", "1234"); await page.click("#btn-desbloquear");
+  await page.fill("#bloqueo-clave", "farmacia7"); await page.click("#btn-desbloquear");
   await page.waitForFunction(() => document.querySelector("#bloqueo").classList.contains("oculto"), null, { timeout: 15000 });
+  igual((await page.textContent("#busqueda")) || await page.inputValue("#busqueda"), "", "la búsqueda se limpia al bloquear");
 
-  // Cambiar clave y desactivar
+  // Copia cifrada con el bloqueo activo (Aceptar = cifrada)
   await page.click('button[data-vista="ajustes"]');
-  await page.fill("#clave-actual", "mala"); await page.fill("#clave-cambio", "5678");
-  await page.click("#btn-cambiar-clave"); await page.waitForTimeout(1500);
-  ok((await toast(page)).includes("incorrecta"), "cambiar clave con la actual mal → error");
-  await page.fill("#clave-actual", "1234"); await page.fill("#clave-cambio", "5678");
-  await page.click("#btn-cambiar-clave");
+  cola.push(true);
+  const [dlCif] = await Promise.all([page.waitForEvent("download"), page.click("#btn-exportar")]);
+  const copiaCif = JSON.parse(await readFile(await dlCif.path(), "utf8"));
+  ok(copiaCif.cifrado === true && copiaCif.paquete && !JSON.stringify(copiaCif).includes("Secreto"), "la copia exportada va cifrada y sin nombres legibles");
+  const archivoCif = path.join(RAIZ, "_copia-cifrada.json");
+  await writeFile(archivoCif, JSON.stringify(copiaCif));
+  // Copia sin cifrar (Cancelar)
+  cola.push(false);
+  const [dlClaro] = await Promise.all([page.waitForEvent("download"), page.click("#btn-exportar")]);
+  ok(JSON.parse(await readFile(await dlClaro.path(), "utf8")).clientes.length === 2, "la copia sin cifrar lleva los clientes");
+
+  // Carrera: «Bloquear ahora» mientras se cambia la clave no puede vaciar los datos
+  await page.fill("#clave-actual", "farmacia7"); await page.fill("#clave-cambio", "botica2026");
+  await page.evaluate(() => { cambiarClave(); bloquear(); });
   await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("Clave cambiada"), null, { timeout: 15000 });
+  igual(await page.isVisible("#bloqueo"), false, "no se bloquea en mitad de un cambio de clave");
+  igual(await page.evaluate(() => datos && datos.clientes.length), 2, "los datos siguen en memoria tras la carrera");
   await page.click("#btn-bloquear-ahora"); await page.waitForTimeout(100);
-  igual(await page.isVisible("#bloqueo"), true, "«Bloquear ahora» bloquea");
-  await page.fill("#bloqueo-clave", "5678"); await page.click("#btn-desbloquear");
+  igual(await page.isVisible("#bloqueo"), true, "«Bloquear ahora» bloquea cuando no hay operación en curso");
+  await page.fill("#bloqueo-clave", "botica2026"); await page.click("#btn-desbloquear");
   await page.waitForFunction(() => document.querySelector("#bloqueo").classList.contains("oculto"), null, { timeout: 15000 });
+  igual(await page.evaluate(() => datos.clientes.length), 2, "el baúl sigue completo con la clave nueva");
+
+  // Cambiar clave con la actual mal, y desactivar
   await page.click('button[data-vista="ajustes"]');
-  await page.fill("#clave-actual", "5678");
+  await page.fill("#clave-actual", "mala"); await page.fill("#clave-cambio", "otraclave9");
+  await page.click("#btn-cambiar-clave");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("incorrecta"), null, { timeout: 15000 });
+  ok(true, "cambiar clave con la actual mal → error");
+  await page.fill("#clave-actual", "botica2026");
   await page.click("#btn-desactivar-bloqueo");
   await page.waitForSelector("#bloqueo-inactivo:not(.oculto)", { timeout: 15000 });
   const tras = await page.evaluate(() => ({ plano: localStorage.getItem("botifarma_recompra_v1"), baul: localStorage.getItem("botifarma_baul_v1"), meta: localStorage.getItem("botifarma_meta_v1") }));
   ok(tras.plano && tras.plano.includes("Secreto Paciente") && !tras.baul && !tras.meta, "desactivar devuelve los datos en claro y borra baúl y meta");
 
-  // ¿Olvidó la clave? → borra y empieza de nuevo
-  await page.fill("#clave-nueva", "9999"); await page.fill("#clave-nueva2", "9999");
+  // Importar la copia cifrada (pide la clave con la que se exportó)
+  cola.push("farmacia7", true, true);
+  await page.setInputFiles("#archivo-importar", archivoCif);
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("Copia importada"), null, { timeout: 15000 });
+  igual(await page.evaluate(() => datos.clientes.length), 2, "la copia cifrada se importa con su clave");
+  cola.push("clave-mala"); // con la clave mal, la importación se detiene antes de las confirmaciones
+  await page.setInputFiles("#archivo-importar", archivoCif);
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("Clave incorrecta"), null, { timeout: 15000 });
+  ok(true, "una clave equivocada no abre la copia cifrada");
+
+  // ¿Olvidó la clave? → aparta los datos, exige escribir BORRAR y luego se pueden recuperar
+  await page.fill("#clave-nueva", "perdida99"); await page.fill("#clave-nueva2", "perdida99");
   await page.click("#btn-activar-bloqueo");
   await page.waitForSelector("#bloqueo-activo:not(.oculto)", { timeout: 15000 });
   await page.reload(); await page.waitForTimeout(300);
-  cola.push(true, true);
+  cola.push(true, "no");
+  await page.click("#btn-olvide-clave"); await page.waitForTimeout(300);
+  igual(await page.isVisible("#bloqueo"), true, "sin escribir BORRAR no se borra nada");
+  cola.push(true, "BORRAR");
   await page.click("#btn-olvide-clave");
-  await page.waitForTimeout(500);
-  igual(await page.isVisible("#bloqueo"), false, "«Olvidé la clave» borra y la app arranca limpia");
-  igual(await page.evaluate(() => datos.clientes.length), 0, "sin clientes tras borrar");
+  await page.waitForTimeout(600);
+  igual(await page.isVisible("#bloqueo"), false, "«Olvidé la clave» aparta los datos y la app arranca limpia");
+  igual(await page.evaluate(() => datos.clientes.length), 0, "sin clientes tras apartar");
+  ok(await page.evaluate(() => !!localStorage.getItem("botifarma_baul_olvidado_v1")), "el baúl queda apartado, no destruido");
+  await page.click('button[data-vista="ajustes"]');
+  igual(await page.isVisible("#baul-olvidado"), true, "Ajustes ofrece recuperar los datos apartados");
+  await page.fill("#clave-olvidada", "otra"); await page.click("#btn-recuperar-baul");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("no abre"), null, { timeout: 15000 });
+  await page.fill("#clave-olvidada", "perdida99"); await page.click("#btn-recuperar-baul");
+  await page.waitForFunction(() => document.querySelector("#toast").textContent.includes("Recuperados 2"), null, { timeout: 15000 });
+  igual(await page.evaluate(() => datos.clientes.length), 2, "con la clave recordada se recuperan los 2 clientes");
+  igual(await page.evaluate(() => localStorage.getItem("botifarma_baul_olvidado_v1")), null, "el baúl apartado se elimina tras recuperarlo");
+  await ctx.close();
+
+  /* ───────── 6b. Dos ventanas abiertas a la vez ───────── */
+  console.log("\n6b. Dos ventanas con la misma app");
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "es-DO", timezoneId: "America/Santo_Domingo" });
+  const pA = await ctx.newPage(); vigilarConsola(pA, errores); dialogos(pA);
+  const pB = await ctx.newPage(); vigilarConsola(pB, errores); dialogos(pB);
+  await pA.goto(base); await pB.goto(base); await pA.waitForTimeout(200);
+  await nuevoCliente(pB, { nombre: "Desde B", producto: "Prod B", dias: 30 });
+  await pA.waitForTimeout(400);
+  igual(await pA.evaluate(() => datos.clientes.length), 1, "la ventana A ve el cliente creado en la ventana B");
+  await nuevoCliente(pA, { nombre: "Desde A", producto: "Prod A", dias: 30 });
+  await pB.waitForTimeout(400);
+  igual(await pB.evaluate(() => datos.clientes.map((c) => c.nombre).sort().join("|")), "Desde A|Desde B", "la ventana A no pisa lo que guardó B");
+  await ctx.close();
+
+  /* ───────── 6c. Navegador que no deja guardar ───────── */
+  console.log("\n6c. Almacenamiento bloqueado");
+  ctx = await browser.newContext({ viewport: { width: 800, height: 1280 }, locale: "es-DO" });
+  page = await ctx.newPage(); vigilarConsola(page, errores); dialogos(page);
+  await page.addInitScript(() => { Storage.prototype.setItem = () => { throw new DOMException("bloqueado", "SecurityError"); }; });
+  await page.goto(base); await page.waitForTimeout(300);
+  igual(await page.isVisible("#aviso-memoria"), true, "aviso visible cuando el navegador no deja guardar");
+  await nuevoCliente(page, { nombre: "Sin Guardar", producto: "X", dias: 30 });
+  igual(await page.evaluate(() => datos.clientes.length), 1, "la app sigue funcionando en memoria");
   await ctx.close();
 
   /* ───────── 7. Atajos, sin conexión, actualización ───────── */
@@ -398,9 +492,15 @@ const toast = (page) => page.textContent("#toast");
   }
   await ctx.close();
 
+  /* ───────── 8. Convivencia con La Biblioteca (mismo origen) ───────── */
+  console.log("\n8. Service worker de la raíz");
+  const swRaiz = await readFile(path.join(CARPETA_APP, "..", "sw.js"), "utf8");
+  ok(/k\.startsWith\("la-biblioteca-"\)/.test(swRaiz), "el service worker de La Biblioteca solo borra sus propias cachés");
+  ok(swRaiz.includes('url.pathname.includes("/botifarma")'), "el service worker de La Biblioteca no intercepta /botifarma/");
+
   await browser.close();
   srv.close();
-  try { const { unlink } = await import("node:fs/promises"); await unlink(archivoTmp); } catch (e) { /* nada */ }
+  await rm(RAIZ, { recursive: true, force: true });
 
   console.log(`\nResultado: ${pasadas} pruebas pasadas, ${fallos} fallidas.`);
   if (errores.length) { console.log("Errores de consola:"); for (const e of errores) console.log("  •", e); }

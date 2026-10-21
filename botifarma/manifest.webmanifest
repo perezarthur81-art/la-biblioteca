@@ -1,7 +1,7 @@
 {
   "name": "BotiFarma — Recompra",
   "short_name": "BotiFarma",
-  "description": "Gestor de recompras para farmacias: sepa cada dia a que cliente le toca volver a comprar y recuerdeselo por WhatsApp. Funciona sin conexion.",
+  "description": "Gestor de recompras para farmacias: sepa cada día a qué cliente le toca volver a comprar y recuérdeselo por WhatsApp. Funciona sin conexión.",
   "lang": "es",
   "dir": "ltr",
   "id": "./",

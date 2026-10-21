@@ -555,6 +555,23 @@ a.btn { text-decoration: none; display: inline-flex; align-items: center; justif
 }
 .banner-ambar { background: var(--ambar-100); color: #78350F; border: 1px solid #FDE68A; }
 .banner-azul  { background: var(--azul-100);  color: #1E3A8A; border: 1px solid #BFDBFE; }
+.banner-rojo  { background: var(--rojo-100);  color: #7F1D1D; border: 1px solid #FECACA; }
+
+/* Botón dentro del aviso (Deshacer) */
+.toast-visible { pointer-events: auto; }
+.toast-accion {
+  margin-left: 12px;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  background: var(--verde-500);
+  color: var(--blanco);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+.baul-olvidado { border-top: 1px solid var(--borde); padding-top: 12px; margin-top: 4px; }
 
 /* Formulario: dos campos en una fila cuando cabe */
 .campo-doble { display: grid; grid-template-columns: 1fr; gap: 14px; }
@@ -706,6 +723,11 @@ body.bloqueada .cabecera, body.bloqueada .contenido, body.bloqueada .nav { visib
 </header>
 
 <main class="contenido">
+
+  <!-- Aviso: el navegador no deja guardar (archivo abierto desde el gestor de archivos, modo privado…) -->
+  <div id="aviso-memoria" class="banner banner-rojo oculto" role="alert">
+    <span><strong>⚠️ En este modo la app NO guarda los datos</strong>: al cerrarla se pierden. Ábrala instalada o desde su dirección https://… en Chrome.</span>
+  </div>
 
   <!-- Aviso de nueva versión descargada -->
   <div id="aviso-actualizar" class="banner banner-azul oculto" role="status">
@@ -918,7 +940,7 @@ body.bloqueada .cabecera, body.bloqueada .contenido, body.bloqueada .nav { visib
         <button type="button" class="btn btn-primario" id="btn-exportar">💾 Exportar copia</button>
         <button type="button" class="btn btn-primario" id="btn-compartir">📤 Compartir copia</button>
         <button type="button" class="btn btn-secundario" id="btn-importar">Importar copia</button>
-        <input type="file" id="archivo-importar" accept="application/json,.json" class="oculto">
+        <input type="file" id="archivo-importar" accept=".json,application/json,application/octet-stream,text/plain" class="oculto">
       </div>
       <p class="ayuda" id="almacen-estado"></p>
     </div>
@@ -927,12 +949,14 @@ body.bloqueada .cabecera, body.bloqueada .contenido, body.bloqueada .nav { visib
       <h3>Bloqueo con clave</h3>
       <p class="ayuda">Protege la lista de clientes si la tablet queda a la vista: los datos se guardan
         cifrados (AES-256) y la app pide la clave al abrirla y tras un rato sin uso.
-        <strong>Si olvida la clave, los datos no se pueden recuperar</strong>: tenga siempre una copia de seguridad.</p>
+        Protege contra miradas y manos ajenas en el mostrador; una clave corta no detiene a un
+        experto con el dispositivo en su poder, así que use una clave larga y distinta a otras.
+        <strong>Si olvida la clave, los datos no se pueden leer</strong>: tenga siempre una copia de seguridad.</p>
 
       <div id="bloqueo-no-disponible" class="ayuda nota-pro oculto">⚠️ El bloqueo requiere abrir la app por HTTPS (o instalada).</div>
 
       <div id="bloqueo-inactivo" class="bloqueo-opciones">
-        <input type="password" id="clave-nueva" autocomplete="new-password" placeholder="Clave nueva (mínimo 4)">
+        <input type="password" id="clave-nueva" autocomplete="new-password" placeholder="Clave nueva (mínimo 6, sin secuencias)">
         <input type="password" id="clave-nueva2" autocomplete="new-password" placeholder="Repita la clave">
         <button type="button" class="btn btn-primario" id="btn-activar-bloqueo">🔒 Activar bloqueo</button>
       </div>
@@ -946,7 +970,7 @@ body.bloqueada .cabecera, body.bloqueada .contenido, body.bloqueada .nav { visib
             <option value="15">15 minutos sin uso</option>
             <option value="30">30 minutos sin uso</option>
             <option value="60">1 hora sin uso</option>
-            <option value="0">Solo al cerrar la app</option>
+            <option value="0">Nunca por inactividad (solo al abrir la app)</option>
           </select>
         </label>
         <input type="password" id="clave-actual" autocomplete="current-password" placeholder="Clave actual">
@@ -955,6 +979,15 @@ body.bloqueada .cabecera, body.bloqueada .contenido, body.bloqueada .nav { visib
           <button type="button" class="btn btn-secundario" id="btn-bloquear-ahora">🔒 Bloquear ahora</button>
           <button type="button" class="btn btn-secundario" id="btn-cambiar-clave">Cambiar clave</button>
           <button type="button" class="btn btn-peligro" id="btn-desactivar-bloqueo">Desactivar bloqueo</button>
+        </div>
+      </div>
+
+      <div id="baul-olvidado" class="bloqueo-opciones baul-olvidado oculto">
+        <p class="ayuda" id="baul-olvidado-texto"></p>
+        <input type="password" id="clave-olvidada" autocomplete="off" placeholder="Clave antigua">
+        <div class="form-botones">
+          <button type="button" class="btn btn-primario" id="btn-recuperar-baul">Recuperar datos apartados</button>
+          <button type="button" class="btn btn-secundario" id="btn-descartar-baul">Descartar</button>
         </div>
       </div>
     </div>
@@ -998,6 +1031,8 @@ const CLAVE_BAUL  = "botifarma_baul_v1";       // datos cifrados (con bloqueo)
 const CLAVE_META  = "botifarma_meta_v1";       // sal e iteraciones de la clave
 const CLAVE_PRO   = "botifarma_pro_v2";        // código PRO (se verifica al arrancar)
 const CLAVE_PRO_ANTIGUA = "botifarma_pro_v1";  // esquema anterior, ya no válido
+const CLAVE_BAUL_OLVIDADO = "botifarma_baul_olvidado_v1"; // baúl apartado al olvidar la clave
+const CLAVE_PRUEBA = "botifarma_prueba";       // comprueba que el almacenamiento funciona
 
 /* Versión GRATIS: hasta este número de clientes. PRO: sin límite. */
 const LIMITE_GRATIS = 15;
@@ -1007,6 +1042,9 @@ const KDF_ITERS = 200000;
 
 /* Minutos sin uso tras los cuales la app se bloquea (si el bloqueo está activo) */
 const BLOQUEO_MIN_DEFECTO = 15;
+
+/* Longitud mínima de la clave de bloqueo */
+const MIN_CLAVE = 6;
 
 /* Huellas SHA-256 de los códigos de activación PRO (BOTI-XXXX-XXXX-XXXX).
    Los códigos reales los guarda solo el dueño; aquí no aparecen.
@@ -1057,6 +1095,9 @@ let avisoReactivarPro = false;
 let diaPintado = "";
 let temporizadorBloqueo = null;
 let ocultadaEn = 0;
+let operacionClave = false;   // true mientras se activa/cambia/desactiva la clave: no bloquear
+let modoSoloMemoria = false;  // el navegador no deja guardar: todo vive solo en memoria
+let deshacerPendiente = null; // acción de "Deshacer" del último aviso
 
 /* ══════════ Almacenamiento (localStorage con respaldo en memoria) ══════════ */
 
@@ -1068,6 +1109,20 @@ const almacen = {
 };
 
 function haySubtle() { return !!(window.crypto && window.crypto.subtle); }
+
+/* Si el navegador bloquea localStorage (por ejemplo al abrir el archivo desde
+   el gestor de archivos de Android), la app sigue funcionando pero sin guardar */
+function probarAlmacen() {
+  try {
+    localStorage.setItem(CLAVE_PRUEBA, "1");
+    localStorage.removeItem(CLAVE_PRUEBA);
+    modoSoloMemoria = false;
+  } catch (e) {
+    modoSoloMemoria = true;
+  }
+  const aviso = document.getElementById("aviso-memoria");
+  if (aviso) aviso.classList.toggle("oculto", !modoSoloMemoria);
+}
 
 /* ══════════ Criptografía (Web Crypto: PBKDF2 + AES-256-GCM) ══════════ */
 
@@ -1122,7 +1177,10 @@ function hoyISO() {
 }
 
 function esFechaISO(v) {
-  return typeof v === "string" && /^\d{4}-\d{2}-\d{2}$/.test(v);
+  if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const [a, m, d] = v.split("-").map(Number);
+  const f = new Date(a, m - 1, d, 12);
+  return f.getFullYear() === a && f.getMonth() === m - 1 && f.getDate() === d; // rechaza 2026-02-31
 }
 
 function aFecha(iso) {
@@ -1301,12 +1359,27 @@ function vaciar(nodo) {
 }
 
 let toastTimer = null;
-function avisar(mensaje, ms) {
+/* accion = { texto, fn }: añade un botón al aviso (por ejemplo, Deshacer) */
+function avisar(mensaje, ms, accion) {
   const t = $("#toast");
-  t.textContent = mensaje;
+  vaciar(t);
+  t.appendChild(document.createTextNode(mensaje));
+  deshacerPendiente = null;
+  if (accion) {
+    const b = el("button", "toast-accion", accion.texto);
+    b.type = "button";
+    deshacerPendiente = accion.fn;
+    b.addEventListener("click", () => {
+      const fn = deshacerPendiente;
+      deshacerPendiente = null;
+      t.classList.remove("toast-visible");
+      if (fn) fn();
+    });
+    t.appendChild(b);
+  }
   t.classList.add("toast-visible");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove("toast-visible"), ms || 2600);
+  toastTimer = setTimeout(() => { t.classList.remove("toast-visible"); deshacerPendiente = null; }, ms || (accion ? 6000 : 2600));
 }
 
 function pesos(n) {
@@ -1367,12 +1440,22 @@ function registrarCompra(id) {
     avisar("ℹ️ La recompra de hoy ya estaba registrada: " + c.nombre);
     return;
   }
+  const anterior = c.ultima;
+  const yaEstaba = c.historial.includes(hoy);
   c.ultima = hoy;
-  if (!c.historial.includes(hoy)) c.historial.push(hoy);
+  if (!yaEstaba) c.historial.push(hoy);
   c.historial.sort();
   guardarDatos();
   pintarTodo();
-  avisar("✅ Recompra registrada: " + c.nombre);
+  avisar("✅ Recompra registrada: " + c.nombre, 6000, { texto: "Deshacer", fn: () => {
+    const d = buscarCliente(id);
+    if (!d) return;
+    d.ultima = anterior;
+    if (!yaEstaba) d.historial = d.historial.filter((h) => h !== hoy);
+    guardarDatos();
+    pintarTodo();
+    avisar("↩️ Recompra deshecha: " + d.nombre);
+  } });
 }
 
 function marcarAviso(id) {
@@ -1475,7 +1558,7 @@ function tarjetaCliente(cliente, conGestion) {
     wa.rel = "noopener noreferrer";
     wa.addEventListener("click", () => marcarAviso(cliente.id));
     acciones.appendChild(wa);
-  } else if (cliente.tel) {
+  } else if (telefonoWhatsApp(cliente.tel).length >= 11) {
     const tel = el("a", "btn btn-mini btn-llamar", "📞 Llamar");
     tel.href = "tel:+" + telefonoWhatsApp(cliente.tel);
     acciones.appendChild(tel);
@@ -1585,7 +1668,7 @@ function pintarClientes() {
 function calcularPanel() {
   const hoy = hoyISO();
   const r = { r7: 0, r30: 0, ingresos30: 0, conPrecio: 0, aTiempo: 0, ciclos: 0,
-    riesgo: [], productos: new Map(), meses: new Map(), sinTelefono: 0, sinConsentimiento: 0 };
+    riesgo: [], productos: new Map(), meses: new Map(), sinTelefono: 0, sinConsentimiento: 0, consentimientoSinFecha: 0 };
 
   // Últimos 6 meses (incluido el actual), para la gráfica
   const d = aFecha(hoy);
@@ -1606,6 +1689,7 @@ function calcularPanel() {
     if (c.precio) r.conPrecio++;
     if (!c.tel) r.sinTelefono++;
     if (!c.consentimiento.acepta) r.sinConsentimiento++;
+    else if (!c.consentimiento.fecha) r.consentimientoSinFecha++;
 
     for (let i = 1; i < historial.length; i++) {
       const g = diasEntre(historial[i - 1], historial[i]);
@@ -1690,6 +1774,7 @@ function pintarPanel() {
   const calidad = [];
   if (r.sinTelefono) calidad.push(r.sinTelefono + " sin teléfono (no se les puede escribir)");
   if (r.sinConsentimiento) calidad.push(r.sinConsentimiento + " sin consentimiento (no reciben WhatsApp)");
+  if (r.consentimientoSinFecha) calidad.push(r.consentimientoSinFecha + " con consentimiento sin fecha (fichas anteriores a la v1.3: edítelas y vuelva a marcar la casilla)");
   if (datos.clientes.length && r.conPrecio < datos.clientes.length) {
     calidad.push((datos.clientes.length - r.conPrecio) + " sin precio (no cuentan en RD$ recuperados)");
   }
@@ -1699,8 +1784,10 @@ function pintarPanel() {
 /* ══════════ Exportar CSV (Excel) ══════════ */
 
 function csvCelda(v) {
-  const s = String(v == null ? "" : v);
-  return /[",\n;]/.test(s) ? '"' + s.split('"').join('""') + '"' : s;
+  let s = String(v == null ? "" : v);
+  // Excel interpreta como fórmula las celdas que empiezan por = + - @: se neutralizan
+  if (/^[=+\-@\t\r]/.test(s)) s = "'" + s;
+  return /[",\n\r;]/.test(s) ? '"' + s.split('"').join('""') + '"' : s;
 }
 
 function exportarCSV() {
@@ -1715,7 +1802,7 @@ function exportarCSV() {
     filas.push([
       c.nombre, c.tel, c.producto, c.dias, c.ultima, sumarDias(c.ultima, c.dias),
       NOMBRE_ESTADO[estadoCliente(c)], c.precio || "", c.historial.length,
-      ritmoReal(c) || "", c.consentimiento.acepta ? "Sí" : "No", c.consentimiento.fecha,
+      ritmoReal(c) || "", c.consentimiento.acepta ? (c.consentimiento.fecha ? "Sí" : "Sí (sin fecha, anterior a v1.3)") : "No", c.consentimiento.fecha,
       c.ultimoAviso, c.creado, c.notas,
     ].map(csvCelda).join(","));
   }
@@ -1842,7 +1929,9 @@ function prepararFormulario() {
 /* ══════════ Versión GRATIS / PRO ══════════ */
 
 function normalizarCodigo(c) {
-  return String(c || "").trim().toUpperCase().replace(/[^A-Z0-9-]/g, "");
+  const s = String(c || "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  // BOTI1234ABCDEFGH → BOTI-1234-ABCD-EFGH (acepta el código con o sin guiones)
+  return s.length === 16 ? s.replace(/(.{4})(?=.)/g, "$1-") : s;
 }
 
 /* Al arrancar: el dispositivo guarda el CÓDIGO y se vuelve a verificar cada vez */
@@ -1854,9 +1943,9 @@ async function verificarPro() {
   const codigo = normalizarCodigo(almacen.get(CLAVE_PRO));
   esPro = false;
   if (!codigo || !haySubtle()) return;
-  try {
-    esPro = HUELLAS_PRO.includes(await huellaSHA256(codigo));
-  } catch (e) { esPro = false; }
+  let huella = null;
+  try { huella = await huellaSHA256(codigo); } catch (e) { return; } // fallo técnico: no tocar el código
+  esPro = HUELLAS_PRO.includes(huella);
   if (!esPro) almacen.del(CLAVE_PRO);
 }
 
@@ -1900,8 +1989,21 @@ function prepararVersion() {
 
 function nombreCopia() { return "botifarma-recompra-copia-" + hoyISO() + ".json"; }
 
-function textoCopia() {
+function textoCopiaEnClaro() {
   return JSON.stringify({ app: "BotiFarma Recompra", version: VERSION, exportado: new Date().toISOString(), ...datos }, null, 2);
+}
+
+/* Con el bloqueo activo, la copia sale cifrada con la misma clave (salvo que el
+   usuario pida una copia en claro). Devuelve null si el usuario cancela. */
+async function textoCopia() {
+  if (!claveCifrado || !meta) return textoCopiaEnClaro();
+  const cifrada = confirm("El bloqueo está activo.\n\n" +
+    "Aceptar = copia CIFRADA (solo se abre con su clave actual).\n" +
+    "Cancelar = copia SIN cifrar (sirve aunque olvide la clave; guárdela como documento confidencial).");
+  if (!cifrada) return textoCopiaEnClaro();
+  const paquete = await cifrarTexto(claveCifrado, JSON.stringify(datos));
+  return JSON.stringify({ app: "BotiFarma Recompra", version: VERSION, exportado: new Date().toISOString(),
+    cifrado: true, meta: { salt: meta.salt, iters: meta.iters }, paquete }, null, 2);
 }
 
 function anotarCopia() {
@@ -1910,15 +2012,19 @@ function anotarCopia() {
   pintarAvisoCopia();
 }
 
-function exportarCopia() {
-  descargarArchivo(nombreCopia(), textoCopia(), "application/json");
+async function exportarCopia() {
+  const texto = await textoCopia();
+  if (texto === null) return;
+  descargarArchivo(nombreCopia(), texto, "application/json");
   anotarCopia();
   avisar("💾 Copia exportada");
 }
 
 async function compartirCopia() {
   try {
-    const archivo = new File([textoCopia()], nombreCopia(), { type: "application/json" });
+    const texto = await textoCopia();
+    if (texto === null) return;
+    const archivo = new File([texto], nombreCopia(), { type: "application/json" });
     if (!navigator.canShare || !navigator.canShare({ files: [archivo] })) {
       avisar("Este navegador no permite compartir archivos; use Exportar copia.");
       return;
@@ -1932,41 +2038,77 @@ async function compartirCopia() {
   }
 }
 
+/* Abre una copia cifrada: pide la clave con la que se exportó */
+async function abrirCopiaCifrada(d) {
+  if (!d.meta || typeof d.meta.salt !== "string" || !d.paquete) throw new Error("formato");
+  if (!haySubtle()) { avisar("⚠️ Abrir copias cifradas requiere HTTPS"); return null; }
+  const clave = prompt("Esta copia está cifrada. Escriba la clave con la que se exportó:");
+  if (clave === null) return null;
+  try {
+    const key = await derivarClave(clave, ub64(d.meta.salt), Number(d.meta.iters) || KDF_ITERS);
+    return JSON.parse(await descifrarTexto(key, d.paquete));
+  } catch (e) {
+    avisar("❌ Clave incorrecta: la copia no se pudo abrir");
+    return null;
+  }
+}
+
+/* Añade a la lista actual los clientes de la copia que no estén ya (por id o
+   por nombre + producto + teléfono) */
+function fusionarClientes(nuevos) {
+  const ids = new Set(datos.clientes.map((c) => c.id));
+  const firma = (c) => (c.nombre.trim() + "|" + c.producto.trim() + "|" + telefonoWhatsApp(c.tel)).toLowerCase();
+  const firmas = new Set(datos.clientes.map(firma));
+  let añadidos = 0;
+  for (const c of nuevos) {
+    if (ids.has(c.id) || firmas.has(firma(c))) continue;
+    datos.clientes.push(c); añadidos++;
+  }
+  return añadidos;
+}
+
 function importarCopia(archivo) {
   const lector = new FileReader();
-  lector.onload = () => {
+  lector.onload = async () => {
+    let d;
     try {
-      const d = JSON.parse(lector.result);
-      if (!d || !Array.isArray(d.clientes)) throw new Error("formato");
-      const nuevos = normalizarDatos(d);
-      if (!confirm("La copia tiene " + nuevos.clientes.length + " cliente(s). ¿Desea importarla?")) return;
-      const reemplazar = datos.clientes.length === 0 || confirm(
-        "Ya hay " + datos.clientes.length + " cliente(s) en este dispositivo.\n\n" +
-        "Aceptar = REEMPLAZAR los datos actuales por la copia.\n" +
-        "Cancelar = AÑADIR los clientes de la copia a los actuales (sin duplicar).");
-      if (reemplazar) {
-        datos = nuevos;
-      } else {
-        const ids = new Set(datos.clientes.map((c) => c.id));
-        const firma = (c) => (c.nombre + "|" + c.producto + "|" + c.tel).toLowerCase();
-        const firmas = new Set(datos.clientes.map(firma));
-        let añadidos = 0;
-        for (const c of nuevos.clientes) {
-          if (ids.has(c.id) || firmas.has(firma(c))) continue;
-          datos.clientes.push(c); añadidos++;
-        }
-        avisar("✅ " + añadidos + " cliente(s) añadido(s)");
-        guardarDatos();
-        pintarTodo();
-        return;
+      d = JSON.parse(lector.result);
+      if (!d || typeof d !== "object") throw new Error("formato");
+      if (d.cifrado === true) {
+        d = await abrirCopiaCifrada(d);
+        if (!d) return;
       }
-      guardarDatos();
-      $("#plantilla").value = datos.plantilla;
-      $("#f-farmacia").value = datos.ajustes.farmacia;
-      pintarTodo();
-      avisar("✅ Copia importada");
+      if (!Array.isArray(d.clientes)) throw new Error("formato");
     } catch (e) {
       avisar("⚠️ El archivo no es una copia válida de BotiFarma");
+      return;
+    }
+    const nuevos = normalizarDatos(d);
+    if (!confirm("La copia tiene " + nuevos.clientes.length + " cliente(s). ¿Desea importarla?")) return;
+    const reemplazar = datos.clientes.length === 0 || confirm(
+      "Ya hay " + datos.clientes.length + " cliente(s) en este dispositivo.\n\n" +
+      "Aceptar = REEMPLAZAR los datos actuales por la copia.\n" +
+      "Cancelar = AÑADIR los clientes de la copia a los actuales (sin duplicar).\n\n" +
+      "(Después podrá deshacerlo con el botón del aviso.)");
+    const antes = JSON.stringify(datos);
+    const deshacer = { texto: "Deshacer", fn: () => {
+      datos = normalizarDatos(JSON.parse(antes));
+      guardarDatos();
+      pintarAjustes();
+      pintarTodo();
+      avisar("↩️ Importación deshecha");
+    } };
+    if (reemplazar) {
+      datos = nuevos;
+      guardarDatos();
+      pintarAjustes();
+      pintarTodo();
+      avisar("✅ Copia importada: " + nuevos.clientes.length + " cliente(s)", 8000, deshacer);
+    } else {
+      const añadidos = fusionarClientes(nuevos.clientes);
+      guardarDatos();
+      pintarTodo();
+      avisar("✅ " + añadidos + " cliente(s) añadido(s)", 8000, deshacer);
     }
   };
   lector.readAsText(archivo);
@@ -2052,7 +2194,7 @@ function leerMeta() {
     const m = JSON.parse(almacen.get(CLAVE_META) || "null");
     if (m && typeof m.salt === "string" && m.salt) {
       return { v: 1, salt: m.salt, iters: Number(m.iters) || KDF_ITERS,
-        bloqueoMin: Number.isFinite(Number(m.bloqueoMin)) ? Number(m.bloqueoMin) : BLOQUEO_MIN_DEFECTO };
+        bloqueoMin: Number.isFinite(Number(m.bloqueoMin)) ? Math.max(0, Math.min(1440, Number(m.bloqueoMin))) : BLOQUEO_MIN_DEFECTO };
     }
   } catch (e) { /* sin bloqueo */ }
   return null;
@@ -2063,12 +2205,50 @@ function guardarMeta() {
   else almacen.del(CLAVE_META);
 }
 
+function leerBaulOlvidado() {
+  try {
+    const b = JSON.parse(almacen.get(CLAVE_BAUL_OLVIDADO) || "null");
+    if (b && b.meta && typeof b.meta.salt === "string" && b.paquete) return b;
+  } catch (e) { /* nada */ }
+  return null;
+}
+
 function pintarBloqueo() {
   const activo = !!meta;
   $("#bloqueo-inactivo").classList.toggle("oculto", activo || !haySubtle());
   $("#bloqueo-activo").classList.toggle("oculto", !activo);
   $("#bloqueo-no-disponible").classList.toggle("oculto", haySubtle());
   if (activo) $("#bloqueo-minutos").value = String(meta.bloqueoMin);
+  const olvidado = leerBaulOlvidado();
+  $("#baul-olvidado").classList.toggle("oculto", !olvidado || !haySubtle());
+  if (olvidado) {
+    $("#baul-olvidado-texto").textContent = "Hay datos apartados de una clave olvidada (" +
+      fechaBonita(olvidado.fecha) + "). Si recuerda esa clave, puede recuperarlos y añadirlos a la lista actual.";
+  }
+}
+
+/* Recupera los clientes de un baúl apartado al olvidar la clave */
+async function recuperarBaulOlvidado() {
+  const olvidado = leerBaulOlvidado();
+  const clave = $("#clave-olvidada").value;
+  if (!olvidado || !clave) { avisar("Escriba la clave antigua"); return; }
+  const boton = $("#btn-recuperar-baul");
+  boton.disabled = true;
+  try {
+    const key = await derivarClave(clave, ub64(olvidado.meta.salt), Number(olvidado.meta.iters) || KDF_ITERS);
+    const d = normalizarDatos(JSON.parse(await descifrarTexto(key, olvidado.paquete)));
+    const añadidos = fusionarClientes(d.clientes);
+    almacen.del(CLAVE_BAUL_OLVIDADO);
+    $("#clave-olvidada").value = "";
+    guardarDatos();
+    pintarBloqueo();
+    pintarTodo();
+    avisar("✅ Recuperados " + añadidos + " cliente(s) del baúl antiguo", 5000);
+  } catch (e) {
+    avisar("❌ Esa clave no abre el baúl antiguo");
+  } finally {
+    boton.disabled = false;
+  }
 }
 
 function mostrarPantallaBloqueo(mensaje) {
@@ -2086,11 +2266,20 @@ function ocultarPantallaBloqueo() {
 
 /* Bloquea: olvida los datos en memoria y limpia la pantalla */
 function bloquear() {
-  if (!meta || !datos) return;
+  if (!meta || !datos || operacionClave) return;
   datos = null;
   claveCifrado = null;
   clearTimeout(temporizadorBloqueo);
+  // Nada legible queda en pantalla mientras está bloqueada
   for (const sel of ["#hoy-listas", "#clientes-lista", "#p-riesgo", "#p-productos", "#p-meses"]) vaciar($(sel));
+  for (const sel of ["#stat-vencidas", "#stat-hoy", "#stat-proximas", "#stat-clientes", "#p-r7", "#p-r30"]) $(sel).textContent = "0";
+  for (const sel of ["#p-ingresos", "#p-puntualidad"]) $(sel).textContent = "—";
+  for (const sel of ["#p-ingresos-nota", "#p-puntualidad-nota", "#p-calidad", "#aviso-copia-texto", "#toast"]) $(sel).textContent = "";
+  $("#p-riesgo-titulo").textContent = "Clientes en riesgo";
+  $("#busqueda").value = "";
+  $("#plantilla").value = "";
+  $("#f-farmacia").value = "";
+  $("#aviso-copia").classList.add("oculto");
   limpiarFormulario();
   mostrarVista("hoy");
   mostrarPantallaBloqueo("");
@@ -2098,9 +2287,14 @@ function bloquear() {
 
 async function desbloquear() {
   const clave = $("#bloqueo-clave").value;
-  if (!clave) return;
   const boton = $("#btn-desbloquear");
+  if (!clave || boton.disabled) return;
+  if (!haySubtle()) {
+    $("#bloqueo-error").textContent = "Abra la app por HTTPS (o instalada) para desbloquearla.";
+    return;
+  }
   boton.disabled = true;
+  boton.textContent = "Verificando…";
   try {
     const key = await derivarClave(clave, ub64(meta.salt), meta.iters);
     const crudo = almacen.get(CLAVE_BAUL);
@@ -2122,6 +2316,7 @@ async function desbloquear() {
     $("#bloqueo-clave").focus();
   } finally {
     boton.disabled = false;
+    boton.textContent = "Entrar";
   }
 }
 
@@ -2131,18 +2326,46 @@ function reiniciarTemporizadorBloqueo() {
   temporizadorBloqueo = setTimeout(bloquear, meta.bloqueoMin * 60000);
 }
 
+/* Devuelve el motivo por el que una clave no sirve, o "" si es aceptable */
+function problemaClave(k) {
+  if (k.length < MIN_CLAVE) return "La clave debe tener al menos " + MIN_CLAVE + " caracteres";
+  if (/^(.)\1+$/.test(k)) return "La clave no puede ser un solo carácter repetido";
+  if ("0123456789012345".includes(k) || "9876543210987654".includes(k) || "abcdefghijklmnopqrstuvwxyz".includes(k.toLowerCase())) {
+    return "La clave no puede ser una secuencia como 123456";
+  }
+  return "";
+}
+
+/* Mientras se activa, cambia o desactiva la clave no se puede bloquear */
+function empezarOperacionClave(boton) {
+  operacionClave = true;
+  clearTimeout(temporizadorBloqueo);
+  boton.disabled = true;
+  $("#btn-bloquear-ahora").disabled = true;
+}
+
+function terminarOperacionClave(boton) {
+  operacionClave = false;
+  boton.disabled = false;
+  $("#btn-bloquear-ahora").disabled = false;
+  reiniciarTemporizadorBloqueo();
+}
+
 async function activarBloqueo() {
   const k1 = $("#clave-nueva").value;
   const k2 = $("#clave-nueva2").value;
-  if (k1.length < 4) { avisar("La clave debe tener al menos 4 caracteres"); return; }
+  const problema = problemaClave(k1);
+  if (problema) { avisar(problema); return; }
   if (k1 !== k2) { avisar("Las claves no coinciden"); return; }
   const boton = $("#btn-activar-bloqueo");
-  boton.disabled = true;
+  empezarOperacionClave(boton);
   try {
     const sal = crypto.getRandomValues(new Uint8Array(16));
     const key = await derivarClave(k1, sal, KDF_ITERS);
     await colaEscritura;
-    const paquete = await cifrarTexto(key, JSON.stringify(datos));
+    if (!datos) return;
+    const texto = JSON.stringify(datos); // instantánea: no volver a leer datos tras un await
+    const paquete = await cifrarTexto(key, texto);
     almacen.set(CLAVE_BAUL, JSON.stringify(paquete));
     meta = { v: 1, salt: b64(sal), iters: KDF_ITERS, bloqueoMin: BLOQUEO_MIN_DEFECTO };
     guardarMeta();
@@ -2150,12 +2373,11 @@ async function activarBloqueo() {
     claveCifrado = key;
     $("#clave-nueva").value = ""; $("#clave-nueva2").value = "";
     pintarBloqueo();
-    reiniciarTemporizadorBloqueo();
     avisar("🔒 Bloqueo activado. Los datos quedaron cifrados en este dispositivo.", 4000);
   } catch (e) {
     avisar("⚠️ No se pudo activar el bloqueo en este navegador");
   } finally {
-    boton.disabled = false;
+    terminarOperacionClave(boton);
   }
 }
 
@@ -2172,45 +2394,53 @@ async function comprobarClaveActual(clave) {
 
 async function desactivarBloqueo() {
   const boton = $("#btn-desactivar-bloqueo");
-  boton.disabled = true;
+  empezarOperacionClave(boton);
   try {
     const key = await comprobarClaveActual($("#clave-actual").value);
     if (!key) { avisar("❌ Clave actual incorrecta"); return; }
     await colaEscritura;
-    almacen.set(CLAVE_DATOS, JSON.stringify(datos));
+    if (!datos) return;
+    const texto = JSON.stringify(datos);
+    almacen.set(CLAVE_DATOS, texto);
     almacen.del(CLAVE_BAUL);
     meta = null;
     guardarMeta();
     claveCifrado = null;
-    clearTimeout(temporizadorBloqueo);
     $("#clave-actual").value = "";
     pintarBloqueo();
     avisar("🔓 Bloqueo desactivado. Los datos vuelven a guardarse sin cifrar.", 4000);
+  } catch (e) {
+    avisar("⚠️ No se pudo desactivar el bloqueo");
   } finally {
-    boton.disabled = false;
+    terminarOperacionClave(boton);
   }
 }
 
 async function cambiarClave() {
   const boton = $("#btn-cambiar-clave");
   const nueva = $("#clave-cambio").value;
-  if (nueva.length < 4) { avisar("La clave nueva debe tener al menos 4 caracteres"); return; }
-  boton.disabled = true;
+  const problema = problemaClave(nueva);
+  if (problema) { avisar(problema); return; }
+  empezarOperacionClave(boton);
   try {
     const actual = await comprobarClaveActual($("#clave-actual").value);
     if (!actual) { avisar("❌ Clave actual incorrecta"); return; }
     const sal = crypto.getRandomValues(new Uint8Array(16));
     const key = await derivarClave(nueva, sal, KDF_ITERS);
     await colaEscritura;
-    const paquete = await cifrarTexto(key, JSON.stringify(datos));
+    if (!datos) return;
+    const texto = JSON.stringify(datos);
+    const paquete = await cifrarTexto(key, texto);
     almacen.set(CLAVE_BAUL, JSON.stringify(paquete));
     meta = { ...meta, salt: b64(sal), iters: KDF_ITERS };
     guardarMeta();
     claveCifrado = key;
     $("#clave-actual").value = ""; $("#clave-cambio").value = "";
     avisar("✅ Clave cambiada");
+  } catch (e) {
+    avisar("⚠️ No se pudo cambiar la clave");
   } finally {
-    boton.disabled = false;
+    terminarOperacionClave(boton);
   }
 }
 
@@ -2231,13 +2461,30 @@ function prepararBloqueo() {
   });
 
   $("#btn-olvide-clave").addEventListener("click", () => {
-    if (!confirm("Sin la clave no hay forma de recuperar los datos cifrados.\n\n" +
-      "¿Borrar los datos de este dispositivo y empezar de nuevo? Después podrá importar una copia de seguridad.")) return;
-    if (!confirm("Última confirmación: ¿borrar definitivamente?")) return;
+    if (!confirm("Sin la clave no se pueden leer los datos cifrados.\n\n" +
+      "¿Apartar esos datos y empezar de nuevo? Después podrá importar una copia de seguridad, " +
+      "y si más adelante recuerda la clave, podrá recuperar los datos apartados desde Ajustes.")) return;
+    const palabra = prompt("Para confirmar, escriba BORRAR en mayúsculas:");
+    if (palabra !== "BORRAR") { avisar("Cancelado: no se borró nada"); return; }
+    try {
+      const baul = almacen.get(CLAVE_BAUL);
+      const m = leerMeta();
+      if (baul && m) {
+        almacen.set(CLAVE_BAUL_OLVIDADO, JSON.stringify({ fecha: hoyISO(), meta: { salt: m.salt, iters: m.iters }, paquete: JSON.parse(baul) }));
+      }
+    } catch (e) { /* si no se puede apartar, se sigue igual */ }
     almacen.del(CLAVE_BAUL);
     almacen.del(CLAVE_META);
     almacen.del(CLAVE_DATOS);
     location.reload();
+  });
+
+  $("#btn-recuperar-baul").addEventListener("click", recuperarBaulOlvidado);
+  $("#btn-descartar-baul").addEventListener("click", () => {
+    if (!confirm("¿Descartar definitivamente los datos apartados? No se podrán recuperar.")) return;
+    almacen.del(CLAVE_BAUL_OLVIDADO);
+    pintarBloqueo();
+    avisar("🗑️ Datos apartados descartados");
   });
 
   // Cualquier uso reinicia el contador de inactividad
@@ -2265,7 +2512,7 @@ function mostrarVista(nombre) {
 function prepararNavegacion() {
   document.querySelectorAll(".nav-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
-      if (btn.dataset.vista === "nuevo" && !$("#f-id").value) limpiarFormulario();
+      if (btn.dataset.vista === "nuevo") limpiarFormulario(); // la edición se abre solo desde ✏️ Editar
       mostrarVista(btn.dataset.vista);
     });
   });
@@ -2316,6 +2563,11 @@ function prepararInstalacion() {
   if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("sw.js").then((reg) => {
+        // La app instalada puede pasar días abierta: se buscan versiones nuevas
+        // al volver a ella y cada 6 horas
+        const buscar = () => reg.update().catch(() => {});
+        document.addEventListener("visibilitychange", () => { if (!document.hidden) buscar(); });
+        setInterval(buscar, 6 * 3600000);
         reg.addEventListener("updatefound", () => {
           const nuevo = reg.installing;
           if (!nuevo) return;
@@ -2341,7 +2593,28 @@ function iniciarApp() {
   procesarParametroVista();
 }
 
+/* Otra ventana o pestaña de la misma app guardó cambios: se releen para no
+   pisarlos con una versión vieja */
+async function recargarDesdeAlmacen(ev) {
+  if (ev.key === CLAVE_META) { location.reload(); return; } // el bloqueo cambió en otra ventana
+  if (ev.key !== CLAVE_DATOS && ev.key !== CLAVE_BAUL) return;
+  if (!datos) return; // bloqueada: se leerá al desbloquear
+  try {
+    if (ev.key === CLAVE_BAUL && claveCifrado && ev.newValue) {
+      datos = normalizarDatos(JSON.parse(await descifrarTexto(claveCifrado, JSON.parse(ev.newValue))));
+    } else if (ev.key === CLAVE_DATOS && !claveCifrado && ev.newValue) {
+      datos = normalizarDatos(JSON.parse(ev.newValue));
+    } else {
+      return;
+    }
+    pintarAjustes();
+    pintarTodo();
+    avisar("🔄 Datos actualizados desde otra ventana");
+  } catch (e) { /* se ignora un valor ilegible */ }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
+  probarAlmacen();
   prepararNavegacion();
   prepararFormulario();
   prepararAjustes();
@@ -2366,6 +2639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!document.hidden && datos) pintarTodo();
   });
   setInterval(() => { if (datos && hoyISO() !== diaPintado) pintarTodo(); }, 60000);
+  window.addEventListener("storage", recargarDesdeAlmacen);
 });
 
 </script>

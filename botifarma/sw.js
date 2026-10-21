@@ -26,7 +26,11 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
       Promise.all(keys.filter((k) => k.startsWith("botifarma-") && k !== CACHE).map((k) => caches.delete(k)))
-    ).then(() => self.clients.claim())
+    )
+    // Si otro service worker del mismo origen o el sistema borró la caché,
+    // se vuelve a sembrar para que la app siga abriendo sin conexión
+    .then(() => caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).catch(() => {}))
+    .then(() => self.clients.claim())
   );
 });
 
@@ -48,7 +52,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE).then((cache) => cache.put("./index.html", copy));
         }
         return res;
-      }))
+      })).catch(() => caches.match("./index.html"))
     );
     return;
   }
