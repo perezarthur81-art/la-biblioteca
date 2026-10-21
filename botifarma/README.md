@@ -7,7 +7,7 @@ Mac**, con o sin conexión, en vertical y en horizontal.
 
 © 2026 **Juan Carlos Pérez Arthur**. Todos los derechos reservados.
 
-Versión actual: **1.4.0** · publicada en
+Versión actual: **1.4.1** · publicada en
 `https://perezarthur81-art.github.io/la-biblioteca/botifarma/`
 
 Página de descarga para compartir (detecta el aparato y explica cómo
@@ -55,6 +55,12 @@ Windows, Mac con Chrome o Edge) o con los pasos exactos de ese aparato (iPhone
 y iPad: Compartir → Añadir a pantalla de inicio; Safari de Mac: Archivo →
 Agregar al Dock). Si se cierra con ✕, vuelve a los 14 días y siempre está en
 Ajustes → Instalar como app.
+
+**Enlace de configuración (todo con un toque):** si se abre la app con
+`…/botifarma/#farmacia=Botifarma&activar=BOTI-XXXX-XXXX-XXXX`, queda con el
+nombre de la farmacia y PRO activado. Lo que va después del `#` no viaja al
+servidor y la app lo borra de la barra de direcciones. Cada código PRO es para
+un aparato: no publique ese enlace, mándelo solo a la tablet que lo va a usar.
 
 1. En la tablet, instale **WhatsApp** (o WhatsApp Business) con el chip de la
    farmacia y verifique el número. Sin WhatsApp instalado, el botón abre
@@ -183,7 +189,7 @@ temporal, así que nunca tocan los archivos del repositorio.
 
 ```bash
 npm install
-npm test                         # 133 comprobaciones
+npm test                         # 142 comprobaciones
 CODIGO_PRO=BOTI-XXXX-XXXX-XXXX npm test   # además prueba un código PRO real
 npm run test:capturas            # guarda capturas en botifarma/tests/capturas/
 ```
@@ -218,6 +224,13 @@ para ponerlo en una tarjeta o en un afiche. Dirección pública de la placa:
 ---
 
 ## 8. Historial de versiones
+
+### 1.4.1 — 21 de octubre de 2026
+
+- **Enlace de configuración**: `#farmacia=…&activar=…` pone el nombre y activa
+  PRO con un toque (con bloqueo activo, se aplica al desbloquear); se borra de
+  la barra de direcciones al leerlo
+- Pruebas: 142 comprobaciones
 
 ### 1.4.0 — 21 de octubre de 2026
 

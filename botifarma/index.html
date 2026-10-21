@@ -1075,7 +1075,7 @@ body.bloqueada .cabecera, body.bloqueada .contenido, body.bloqueada .nav { visib
 
 /* ══════════ Constantes ══════════ */
 
-const VERSION = "1.4.0";
+const VERSION = "1.4.1";
 
 const CLAVE_DATOS = "botifarma_recompra_v1";   // datos en claro (sin bloqueo)
 const CLAVE_BAUL  = "botifarma_baul_v1";       // datos cifrados (con bloqueo)
@@ -2731,6 +2731,58 @@ function iniciarApp() {
   pedirAlmacenamientoPersistente();
   reiniciarTemporizadorBloqueo();
   procesarParametroVista();
+  aplicarConfigPendiente();
+}
+
+/* ══════════ Enlace de configuración ══════════
+   …/botifarma/#farmacia=Nombre&activar=BOTI-XXXX-XXXX-XXXX deja la app lista
+   con un toque: pone el nombre de la farmacia y activa PRO. Lo que va después
+   del # no viaja al servidor; la app lo borra de la barra de direcciones al leerlo. */
+
+let configPendiente = null;
+
+function leerEnlaceConfig() {
+  try {
+    if (!location.hash || location.hash.length < 2) return null;
+    const p = new URLSearchParams(location.hash.slice(1));
+    const cfg = {
+      codigo: String(p.get("activar") || ""),
+      farmacia: String(p.get("farmacia") || "").trim().slice(0, 60),
+    };
+    if (!cfg.codigo && !cfg.farmacia) return null;
+    history.replaceState(null, "", location.pathname + location.search);
+    return cfg;
+  } catch (e) { return null; }
+}
+
+async function aplicarConfigPendiente() {
+  if (!configPendiente || !datos) return; // con bloqueo, se aplica al desbloquear
+  const cfg = configPendiente;
+  configPendiente = null;
+  const hechos = [];
+  if (cfg.farmacia) {
+    datos.ajustes.farmacia = cfg.farmacia;
+    guardarDatos();
+    pintarNombreFarmacia();
+    $("#f-farmacia").value = cfg.farmacia;
+    hechos.push("nombre «" + cfg.farmacia + "»");
+  }
+  if (cfg.codigo && !esPro) {
+    const codigo = normalizarCodigo(cfg.codigo);
+    let valido = false;
+    try { valido = haySubtle() && HUELLAS_PRO.includes(await huellaSHA256(codigo)); } catch (e) { valido = false; }
+    if (valido) {
+      try { almacen.set(CLAVE_PRO, codigo); } catch (e) { /* queda activo en memoria */ }
+      esPro = true;
+      pintarVersion();
+      hechos.push("PRO activado");
+    } else {
+      hechos.push("el código PRO no es válido");
+    }
+  } else if (cfg.codigo && esPro) {
+    hechos.push("PRO ya estaba activo");
+  }
+  if (hechos.length) avisar("⚙️ Configuración aplicada: " + hechos.join(" · "), 6000);
 }
 
 /* Otra ventana o pestaña de la misma app guardó cambios: se releen para no
@@ -2764,6 +2816,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   $("#busqueda").addEventListener("input", pintarClientes);
   $("#pie-version").textContent = "BotiFarma — Recompra · v" + VERSION;
 
+  configPendiente = leerEnlaceConfig();
   meta = leerMeta();
   await verificarPro();
 
