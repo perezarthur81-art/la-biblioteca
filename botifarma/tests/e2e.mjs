@@ -113,7 +113,7 @@ const toast = (page) => page.textContent("#toast");
   let cola = dialogos(page);
   await page.goto(base, { waitUntil: "load" });
   await page.waitForTimeout(300);
-  igual(await page.textContent("#pie-version"), "BotiFarma — Recompra · v1.4.0", "versión en el pie");
+  igual(await page.textContent("#pie-version"), "BotiFarma — Recompra · v1.4.1", "versión en el pie");
   igual(await page.locator(".nav-btn").count(), 5, "cinco pestañas");
   igual(await page.isVisible("#hoy-vacio"), true, "estado vacío visible al inicio");
   await captura(page, "tablet-h-01-hoy-vacio");
@@ -229,7 +229,7 @@ const toast = (page) => page.textContent("#toast");
   await page.click('button[data-vista="ajustes"]');
   const [dl] = await Promise.all([page.waitForEvent("download"), page.click("#btn-exportar")]);
   const copia = JSON.parse(await readFile(await dl.path(), "utf8"));
-  igual(copia.version, "1.4.0", "la copia lleva la versión");
+  igual(copia.version, "1.4.1", "la copia lleva la versión");
   igual(copia.clientes.length, 3, "la copia lleva los 3 clientes");
   igual(await page.evaluate(() => datos.ajustes.ultimaCopia === hoyISO()), true, "se anota la fecha de la copia");
 
@@ -474,7 +474,7 @@ const toast = (page) => page.textContent("#toast");
   const sw = await page.evaluate(async () => { const r = await navigator.serviceWorker.ready; return !!r.active; });
   ok(sw, "service worker activo");
   const cachesNombres = await page.evaluate(() => caches.keys());
-  ok(cachesNombres.includes("botifarma-recompra-v1.4.0"), "caché v1.4.0 creada");
+  ok(cachesNombres.includes("botifarma-recompra-v1.4.1"), "caché v1.4.1 creada");
   await ctx.setOffline(true);
   await page.reload({ waitUntil: "load" }); await page.waitForTimeout(300);
   igual(await page.title(), "BotiFarma — Recompra", "recarga sin conexión");
@@ -501,7 +501,7 @@ const toast = (page) => page.textContent("#toast");
   const swRuta = path.join(RAIZ, "sw.js");
   const swOriginal = await readFile(swRuta, "utf8");
   try {
-    await writeFile(swRuta, swOriginal.replace('v1.4.0"', 'v1.4.0-prueba"'));
+    await writeFile(swRuta, swOriginal.replace('v1.4.1"', 'v1.4.1-prueba"'));
     await page.evaluate(async () => { const r = await navigator.serviceWorker.getRegistration(); await r.update(); });
     await page.waitForSelector("#aviso-actualizar:not(.oculto)", { timeout: 10000 });
     ok(true, "aviso de nueva versión al cambiar el service worker");
@@ -612,6 +612,40 @@ const toast = (page) => page.textContent("#toast");
     igual(await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth), false, `la página de descarga no tiene scroll horizontal a ${w} px`);
     await ctx.close();
   }
+
+  /* ───────── 7c. Enlace de configuración (#farmacia=…&activar=…) ───────── */
+  console.log("\n7c. Enlace de configuración");
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "es-DO", timezoneId: "America/Santo_Domingo" });
+  page = await ctx.newPage(); vigilarConsola(page, errores); dialogos(page);
+  await page.goto(base + "#farmacia=Botica%20de%20Prueba&activar=BOTI-0000-0000-0000"); await page.waitForTimeout(500);
+  igual(await page.textContent("#cabecera-nombre"), "Botica de Prueba", "el enlace pone el nombre de la farmacia");
+  ok((await toast(page)).includes("no es válido"), "un código PRO falso en el enlace se rechaza y se avisa");
+  igual(await page.isVisible("#badge-pro"), false, "con código falso no se activa PRO");
+  ok(!page.url().includes("#"), "el enlace se borra de la barra de direcciones");
+  await page.reload(); await page.waitForTimeout(300);
+  igual(await page.textContent("#cabecera-nombre"), "Botica de Prueba", "el nombre queda guardado al recargar");
+  if (CODIGO_PRO) {
+    await page.goto(base + "#farmacia=Botifarma&activar=" + encodeURIComponent(CODIGO_PRO.toLowerCase().replace(/-/g, ""))); await page.reload(); await page.waitForTimeout(500);
+    igual(await page.isVisible("#badge-pro"), true, "el enlace con código real activa PRO");
+    igual(await page.textContent("#cabecera-nombre"), "Botifarma", "y cambia el nombre a Botifarma");
+  }
+  await ctx.close();
+  // Con bloqueo activo, la configuración se aplica al desbloquear
+  ctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, locale: "es-DO" });
+  page = await ctx.newPage(); vigilarConsola(page, errores); dialogos(page);
+  await page.goto(base); await page.waitForTimeout(200);
+  await page.click('button[data-vista="ajustes"]');
+  await page.fill("#clave-nueva", "botica77"); await page.fill("#clave-nueva2", "botica77");
+  await page.click("#btn-activar-bloqueo");
+  await page.waitForSelector("#bloqueo-activo:not(.oculto)", { timeout: 15000 });
+  await page.goto(base + "#farmacia=Farmacia%20Bloqueada"); await page.reload(); await page.waitForTimeout(300);
+  igual(await page.isVisible("#bloqueo"), true, "con bloqueo, primero pide la clave");
+  await page.goto(base + "#farmacia=Farmacia%20Bloqueada"); await page.waitForTimeout(300);
+  await page.fill("#bloqueo-clave", "botica77"); await page.click("#btn-desbloquear");
+  await page.waitForFunction(() => document.querySelector("#bloqueo").classList.contains("oculto"), null, { timeout: 15000 });
+  await page.waitForTimeout(200);
+  igual(await page.textContent("#cabecera-nombre"), "Farmacia Bloqueada", "al desbloquear se aplica el nombre del enlace");
+  await ctx.close();
 
   /* ───────── 8. Convivencia con La Biblioteca (mismo origen) ───────── */
   console.log("\n8. Service worker de la raíz");
