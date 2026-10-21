@@ -1,0 +1,16 @@
+{
+  "name": "la-biblioteca",
+  "version": "1.0.0",
+  "private": true,
+  "description": "La Biblioteca — Reservas y BotiFarma — Recompra: apps web instalables (PWA) sin paso de compilación. Este package.json solo sirve para correr las pruebas.",
+  "author": "Juan Carlos Pérez Arthur",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "type": "module",
+  "scripts": {
+    "test": "node botifarma/tests/e2e.mjs",
+    "test:capturas": "CAPTURAS=1 node botifarma/tests/e2e.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.0"
+  }
+}
