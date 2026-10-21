@@ -7,8 +7,15 @@ Mac**, con o sin conexión, en vertical y en horizontal.
 
 © 2026 **Juan Carlos Pérez Arthur**. Todos los derechos reservados.
 
-Versión actual: **1.3.1** · publicada en
+Versión actual: **1.4.0** · publicada en
 `https://perezarthur81-art.github.io/la-biblioteca/botifarma/`
+
+Página de descarga para compartir (detecta el aparato y explica cómo
+instalarla): `https://perezarthur81-art.github.io/la-biblioteca/botifarma/descargar/`
+
+Calidad medida con Lighthouse (Google), versión móvil: app 99 de rendimiento y
+100 en accesibilidad, buenas prácticas y SEO; página de descarga 100 en las
+cuatro.
 
 ---
 
@@ -41,6 +48,13 @@ Versión actual: **1.3.1** · publicada en
 ---
 
 ## 2. Instalar en la tablet de la farmacia (Android, 5 minutos)
+
+En cualquier aparato basta con abrir la dirección: la app muestra un aviso
+verde «Instale BotiFarma en este dispositivo» con el botón **Instalar** (Android,
+Windows, Mac con Chrome o Edge) o con los pasos exactos de ese aparato (iPhone
+y iPad: Compartir → Añadir a pantalla de inicio; Safari de Mac: Archivo →
+Agregar al Dock). Si se cierra con ✕, vuelve a los 14 días y siempre está en
+Ajustes → Instalar como app.
 
 1. En la tablet, instale **WhatsApp** (o WhatsApp Business) con el chip de la
    farmacia y verifique el número. Sin WhatsApp instalado, el botón abre
@@ -76,7 +90,8 @@ aviso «Hay una versión nueva» y basta tocar **Actualizar ahora**.
 
 ### A. Abrir el archivo directamente (solo en computadora)
 
-Copie `index.html` a la computadora y ábralo con Chrome o Edge. Todo funciona:
+Copie la carpeta `botifarma/` completa (no solo `index.html`: los íconos van en
+`assets/`) a la computadora y abra `index.html` con Chrome o Edge. Todo funciona:
 clientes, WhatsApp Web, copias y panel. Lo que no aplica en este modo es la
 instalación como app y el modo sin conexión automático.
 
@@ -159,12 +174,16 @@ exportan e importan copias (en claro y cifradas), migran datos de la v1.2,
 activan PRO, cifran con clave, bloquean por inactividad, fuerzan la carrera
 «cambiar clave + bloquear», recuperan un baúl de clave olvidada, abren dos
 ventanas a la vez, simulan un navegador que no deja guardar, recargan sin
-conexión y comprueban el aviso de actualización. Se sirven desde una copia
+conexión, comprueban el aviso de actualización, la guía de instalación en
+Android, iPhone y computadora (y que no salga si ya está instalada), el nombre
+de la farmacia en la cabecera, «Recomendar a otra farmacia», la página de
+descarga y que la placa y los demás archivos se abran como lo que son y no
+como la app. Se sirven desde una copia
 temporal, así que nunca tocan los archivos del repositorio.
 
 ```bash
 npm install
-npm test                         # 102 comprobaciones
+npm test                         # 133 comprobaciones
 CODIGO_PRO=BOTI-XXXX-XXXX-XXXX npm test   # además prueba un código PRO real
 npm run test:capturas            # guarda capturas en botifarma/tests/capturas/
 ```
@@ -182,6 +201,7 @@ botifarma/
 ├── README.md               Este archivo
 ├── assets/                 Íconos (192, 512, maskable, apple-touch, favicon) y su SVG
 ├── placa/                  Placa con código QR (PDF y PNG) para abrir la app con un toque
+├── descargar/              Página de descarga (detecta el aparato) con su tipografía
 └── tests/e2e.mjs           Pruebas de extremo a extremo
 ```
 
@@ -198,6 +218,28 @@ para ponerlo en una tarjeta o en un afiche. Dirección pública de la placa:
 ---
 
 ## 8. Historial de versiones
+
+### 1.4.0 — 21 de octubre de 2026
+
+- **Instalación con un toque en cualquier aparato**: aviso al abrir con botón
+  Instalar (Android, Windows, Mac con Chrome/Edge) o con los pasos exactos
+  (iPhone/iPad, Safari de Mac, Firefox); no sale si ya está instalada y en
+  Ajustes dice «Ya está instalada en este equipo»
+- **Página de descarga** (`descargar/`): detecta el aparato, pone sus pasos
+  primero, instala con un toque donde el navegador lo permite, QR para otra
+  pantalla, cómo trabaja la app, privacidad y precios
+- **Marca blanca**: la cabecera y el título de la ventana muestran el nombre de
+  la farmacia que se escribe en Ajustes
+- **Recomendar a otra farmacia**: comparte el enlace de la página de descarga
+  por WhatsApp o el menú de compartir
+- **Vista previa al compartir** (WhatsApp, Facebook, correo) con imagen de 1200×630
+- Corregido: con la app ya abierta una vez en ese navegador, la placa PDF, la
+  página de descarga y otros archivos de la carpeta se abrían como la app; ahora
+  el service worker solo sirve la app desde la caché
+- Contraste AA en botones (incluido el de WhatsApp, que tenía letra blanca
+  sobre verde claro); la app pesa 40% menos (el logo ya no va embebido)
+- Lighthouse: app 99/100/100/100 y descarga 100/100/100/100
+- Pruebas: 133 comprobaciones
 
 ### 1.3.1 — 21 de octubre de 2026
 

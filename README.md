@@ -9,7 +9,8 @@ funciona en **Android, iPhone, iPad, Windows y Mac**, sin conexión, y que
 > Este repositorio también publica **BotiFarma — Recompra** (gestor de
 > recompras para farmacias, con WhatsApp, panel de resultados y bloqueo con
 > clave) en la carpeta [`botifarma/`](botifarma/README.md), disponible en
-> `https://perezarthur81-art.github.io/la-biblioteca/botifarma/`.
+> `https://perezarthur81-art.github.io/la-biblioteca/botifarma/` (página de
+> descarga: `https://perezarthur81-art.github.io/la-biblioteca/botifarma/descargar/`).
 
 ---
 

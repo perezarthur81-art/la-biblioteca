@@ -3,7 +3,7 @@
    Cachea la app completa para funcionar 100% sin conexión.
    Al cambiar la versión aquí, la app descarga la nueva y avisa en pantalla. */
 
-const CACHE = "botifarma-recompra-v1.3.1";
+const CACHE = "botifarma-recompra-v1.4.0";
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,6 +15,13 @@ const ASSETS = [
   "./assets/apple-touch-icon.png",
   "./assets/favicon-32.png",
 ];
+
+/* Rutas que son la app (con o sin ?vista=…). Todo lo demás dentro de la
+   carpeta (página de descarga, placa PDF, README) se sirve como lo que es. */
+const RAIZ = new URL("./", self.registration.scope).pathname;
+function esLaApp(url) {
+  return url.pathname === RAIZ || url.pathname === RAIZ + "index.html";
+}
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -34,6 +41,14 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+function guardar(req, res) {
+  if (res && res.status === 200 && res.type === "basic") {
+    const copy = res.clone();
+    caches.open(CACHE).then((cache) => cache.put(req, copy));
+  }
+  return res;
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -42,18 +57,31 @@ self.addEventListener("fetch", (event) => {
   // Solo manejamos peticiones de nuestro propio origen y dentro de la app
   if (url.origin !== self.location.origin) return;
 
-  // Navegaciones → servir index.html desde caché (offline-first) y, si no
-  // está, pedirlo a la red y guardarlo
   if (req.mode === "navigate") {
-    event.respondWith(
-      caches.match("./index.html").then((cached) => cached || fetch(req).then((res) => {
-        if (res && res.ok) {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put("./index.html", copy));
-        }
-        return res;
-      })).catch(() => caches.match("./index.html"))
-    );
+    if (esLaApp(url)) {
+      // La app: desde la caché (abre al instante y sin conexión) y, si no
+      // está, de la red, guardándola
+      event.respondWith(
+        caches.match("./index.html").then((cached) => cached || fetch(req).then((res) => {
+          if (res && res.ok) {
+            const copy = res.clone();
+            caches.open(CACHE).then((cache) => cache.put("./index.html", copy));
+          }
+          return res;
+        })).catch(() => caches.match("./index.html"))
+      );
+    } else {
+      // Otras páginas y archivos: primero la red; sin conexión, la copia
+      // guardada si existe
+      event.respondWith(
+        fetch(req).then((res) => guardar(req, res)).catch(() =>
+          caches.match(req).then((cached) => cached ||
+            new Response("Sin conexión. Vuelva a intentarlo cuando tenga internet.", {
+              status: 503, headers: { "Content-Type": "text/plain; charset=utf-8" },
+            }))
+        )
+      );
+    }
     return;
   }
 
@@ -61,13 +89,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
-      return fetch(req).then((res) => {
-        if (res && res.status === 200 && res.type === "basic") {
-          const copy = res.clone();
-          caches.open(CACHE).then((cache) => cache.put(req, copy));
-        }
-        return res;
-      }).catch(() =>
+      return fetch(req).then((res) => guardar(req, res)).catch(() =>
         // sin red y sin caché: para documentos devolvemos la app,
         // para el resto una respuesta vacía con estado "sin conexión"
         req.destination === "document"

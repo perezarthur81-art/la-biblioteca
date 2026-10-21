@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<!--
+  BotiFarma — Recompra · Página de descarga
+  © 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.
+-->
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Descargar BotiFarma Recompra</title>
+  <meta name="description" content="BotiFarma Recompra le dice cada mañana a qué paciente le toca volver a comprar su tratamiento y le prepara el WhatsApp. Se instala en Android, iPhone, iPad y computadora, y funciona sin internet.">
+  <meta name="theme-color" content="#0A3D33">
+  <link rel="manifest" href="../manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/favicon-32.png">
+  <link rel="apple-touch-icon" href="../assets/apple-touch-icon.png">
+
+  <!-- Vista previa al compartir el enlace (WhatsApp, Facebook, correo) -->
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_DO">
+  <meta property="og:title" content="BotiFarma Recompra">
+  <meta property="og:description" content="Que ningún paciente se quede sin su tratamiento. Recordatorios de recompra por WhatsApp para su farmacia.">
+  <meta property="og:url" content="https://perezarthur81-art.github.io/la-biblioteca/botifarma/descargar/">
+  <meta property="og:image" content="https://perezarthur81-art.github.io/la-biblioteca/botifarma/assets/og-1200x630.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Ícono de BotiFarma Recompra: anillo de recompra con una cápsula">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <style>
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("fuentes/bricolage-grotesque-latin-600-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Bricolage Grotesque";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("fuentes/bricolage-grotesque-latin-800-normal.woff2") format("woff2");
+}
+
+:root {
+  --pino: #0A3D33;
+  --pino-hondo: #062A23;
+  --menta: #A7F3D0;
+  --menta-viva: #5EEAD4;
+  --papel: #F5FAF7;
+  --blanco: #FFFFFF;
+  --tinta: #11302A;
+  --tinta-suave: #4B635C;
+  --ambar: #F2B04A;
+  --linea: #D5E6DE;
+  --display: "Bricolage Grotesque", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --texto: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--texto);
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+a { color: inherit; }
+:focus-visible { outline: 3px solid var(--ambar); outline-offset: 3px; border-radius: 6px; }
+
+.ancho { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+/* ── Portada ─────────────────────────────────────────── */
+.portada {
+  background: radial-gradient(120% 90% at 85% 10%, #0F5446 0%, var(--pino) 45%, var(--pino-hondo) 100%);
+  color: var(--blanco);
+  padding: calc(env(safe-area-inset-top, 0px) + 20px) 0 72px;
+  overflow: hidden;
+}
+.marca { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.marca img { border-radius: 12px; }
+.marca span { font-family: var(--display); font-weight: 800; font-size: 1.2rem; letter-spacing: 0.01em; }
+.marca small { display: block; font-family: var(--texto); font-weight: 600; font-size: 0.8rem; color: var(--menta); letter-spacing: 0.04em; }
+
+.portada-rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 48px;
+  align-items: center;
+  margin-top: 56px;
+}
+
+h1 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(2.3rem, 5.4vw, 4.1rem);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px;
+  max-width: 14ch;
+}
+.portada p.lema { font-size: 1.15rem; color: #D7EFE6; max-width: 46ch; margin: 0 0 30px; }
+
+.acciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.boton {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  border-radius: 14px;
+  padding: 15px 26px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+}
+.boton-principal { background: var(--menta); color: var(--pino-hondo); box-shadow: 0 10px 30px -10px rgba(94, 234, 212, 0.7); }
+.boton-principal:hover { background: #C3F8E2; }
+.boton-secundario { background: transparent; color: var(--blanco); border: 1.5px solid rgba(167, 243, 208, 0.45); }
+.boton-secundario:hover { border-color: var(--menta); }
+.boton svg { flex: none; }
+
+.equipo { margin: 18px 0 0; font-size: 0.95rem; color: #BFE3D6; max-width: 48ch; min-height: 1.5em; }
+
+/* Anillo de 30 días: el día 30 se enciende en ámbar */
+.escena { position: relative; justify-self: center; width: min(420px, 100%); }
+.anillo { width: 100%; height: auto; display: block; }
+.anillo .dia { stroke: rgba(167, 243, 208, 0.28); stroke-width: 6; stroke-linecap: round; }
+.anillo .dia-hecho { stroke: var(--menta); }
+.anillo .dia-hoy { stroke: var(--ambar); stroke-width: 9; }
+.anillo .arco { fill: none; stroke: url(#arco-grad); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 967 1000; stroke-dashoffset: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .anillo .arco { animation: trazar 1.6s cubic-bezier(.2,.7,.2,1) 0.2s both; }
+  .anillo .dia-hoy { animation: encender 0.5s ease-out 1.6s both; }
+  .burbuja { animation: llegar 0.45s cubic-bezier(.2,.8,.2,1.2) 1.9s both; }
+}
+@keyframes trazar { from { stroke-dashoffset: 967; } to { stroke-dashoffset: 0; } }
+@keyframes encender { from { stroke: rgba(167, 243, 208, 0.28); } to { stroke: var(--ambar); } }
+@keyframes llegar { from { opacity: 0; transform: translateY(14px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+.ficha {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.ficha strong { font-family: var(--display); font-weight: 800; font-size: clamp(1.4rem, 3.2vw, 1.9rem); line-height: 1.1; }
+.ficha span { color: #BFE3D6; font-size: 0.95rem; line-height: 1.35; }
+.ficha strong { margin-bottom: 4px; }
+.ficha em { font-style: normal; color: var(--ambar); font-weight: 700; margin-top: 6px; }
+
+.burbuja {
+  position: absolute;
+  right: -8px;
+  bottom: -26px;
+  max-width: 290px;
+  background: var(--blanco);
+  color: #1F2C27;
+  border-radius: 18px 18px 4px 18px;
+  padding: 12px 14px 8px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, 0.55);
+}
+.burbuja b { display: block; color: #0B6B60; font-size: 0.8rem; margin-bottom: 2px; }
+.burbuja time { display: block; text-align: right; font-size: 0.72rem; color: #5A6B65; margin-top: 4px; }
+
+/* ── Secciones ───────────────────────────────────────── */
+section { padding: 72px 0; }
+h2 {
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3.6vw, 2.6rem);
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+  margin: 0 0 12px;
+}
+.entrada { color: var(--tinta-suave); max-width: 60ch; margin: 0 0 36px; }
+
+/* Instalar: tres equipos; el del visitante va primero y marcado */
+.equipos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 2px solid var(--tinta); }
+.equipo-col { padding: 22px 22px 6px 0; border-right: 1px solid var(--linea); }
+.equipo-col + .equipo-col { padding-left: 22px; }
+.equipo-col:last-child { border-right: 0; }
+.equipo-col h3 { font-family: var(--display); font-weight: 800; font-size: 1.35rem; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.equipo-col .navegador { color: var(--tinta-suave); font-size: 0.92rem; margin: 0 0 14px; }
+.equipo-col ol { margin: 0; padding-left: 1.25em; display: grid; gap: 8px; }
+.equipo-col .nota-mac { margin: 14px 0 0; }
+.equipo-col li::marker { font-family: var(--display); font-weight: 800; color: var(--pino); }
+.es-suyo { font-family: var(--texto); font-size: 0.75rem; font-weight: 700; background: var(--ambar); color: #3A2505; border-radius: 999px; padding: 3px 10px; }
+.equipo-col.suyo { background: linear-gradient(180deg, #FFF6E3, transparent 70%); }
+kbd { font-family: inherit; font-weight: 700; background: var(--blanco); border: 1px solid var(--linea); border-bottom-width: 2px; border-radius: 6px; padding: 0 6px; white-space: nowrap; }
+.icono-compartir { width: 1.1em; height: 1.1em; vertical-align: -0.18em; }
+
+.qr {
+  margin-top: 44px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 28px;
+  align-items: center;
+  background: var(--blanco);
+  border: 1px solid var(--linea);
+  border-radius: 20px;
+  padding: 22px;
+  max-width: 720px;
+}
+.qr img { width: 170px; height: 170px; border-radius: 12px; display: block; }
+.qr h3 { font-family: var(--display); font-weight: 800; font-size: 1.3rem; margin: 0 0 6px; }
+.qr p { margin: 0 0 6px; color: var(--tinta-suave); }
+.qr .direccion { font-size: 0.85rem; color: var(--pino); word-break: break-all; }
+
+/* Cómo trabaja: tres pasos en secuencia */
+.como { background: var(--blanco); border-block: 1px solid var(--linea); }
+.pasos { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px; counter-reset: paso; }
+.pasos li { counter-increment: paso; position: relative; padding-top: 64px; }
+.pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  top: 0; left: 0;
+  font-family: var(--display);
+  font-weight: 800;
+  font-size: 3.4rem;
+  line-height: 1;
+  color: var(--pino);
+}
+.pasos li:nth-child(2)::before { color: var(--ambar); }
+.pasos h3 { font-family: var(--display); font-weight: 800; font-size: 1.3rem; margin: 0 0 8px; }
+.pasos p { margin: 0; color: var(--tinta-suave); }
+
+/* Lo que protege: lista sobria, sin tarjetas */
+.garantias { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 48px; margin: 0; padding: 0; list-style: none; max-width: 900px; }
+.garantias li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 12px; align-items: start; }
+.garantias svg { width: 26px; height: 26px; color: var(--pino); margin-top: 2px; }
+.garantias strong { display: block; }
+.garantias span { color: var(--tinta-suave); }
+
+.precio { display: flex; flex-wrap: wrap; gap: 14px 40px; margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--linea); }
+.precio div { min-width: 220px; }
+.precio strong { font-family: var(--display); font-weight: 800; font-size: 1.5rem; display: block; }
+.precio span { color: var(--tinta-suave); }
+
+/* Cierre */
+.cierre { background: var(--pino); color: var(--blanco); }
+.cierre .ancho { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 24px; }
+.cierre h2 { margin: 0; max-width: 20ch; }
+footer { background: var(--pino-hondo); color: #A9C9BE; font-size: 0.88rem; padding: 26px 0 calc(env(safe-area-inset-bottom, 0px) + 26px); }
+footer .ancho { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; }
+
+/* Guía de instalación (iPhone/iPad y navegadores sin botón) */
+.hoja { position: fixed; inset: 0; background: rgba(6, 42, 35, 0.55); display: grid; align-items: end; justify-items: center; z-index: 50; padding: 16px; }
+.hoja[hidden] { display: none; }
+.hoja-caja { width: 100%; max-width: 460px; background: var(--blanco); color: var(--tinta); border-radius: 22px; padding: 24px 22px 20px; box-shadow: 0 30px 60px -20px rgba(0,0,0,0.5); }
+.hoja-caja h2 { font-size: 1.5rem; }
+.hoja-caja ol { padding-left: 1.3em; display: grid; gap: 10px; margin: 0 0 20px; }
+.hoja-caja .boton { width: 100%; justify-content: center; background: var(--pino); color: var(--blanco); }
+
+/* ── Pantallas medianas y celulares ──────────────────── */
+@media (max-width: 900px) {
+  .portada-rejilla { grid-template-columns: 1fr; gap: 56px; margin-top: 36px; }
+  .escena { width: min(360px, 88%); margin-bottom: 30px; }
+  .equipos { grid-template-columns: 1fr; border-top: 0; }
+  .equipo-col, .equipo-col + .equipo-col { padding: 20px 0; border-right: 0; border-top: 1px solid var(--linea); }
+  .equipo-col.suyo { padding-inline: 16px; border-radius: 0 0 16px 16px; border-top: 2px solid var(--ambar); }
+  .pasos { grid-template-columns: 1fr; gap: 28px; }
+  .garantias { grid-template-columns: 1fr; }
+}
+@media (max-width: 520px) {
+  section { padding: 56px 0; }
+  .qr { grid-template-columns: 1fr; justify-items: start; }
+  .qr img { width: 150px; height: 150px; }
+  .burbuja { right: -4px; max-width: 250px; font-size: 0.88rem; }
+  .acciones .boton { width: 100%; justify-content: center; }
+}
+  </style>
+</head>
+<body>
+
+<header class="portada">
+  <div class="ancho">
+    <a class="marca" href="../" aria-label="Abrir BotiFarma Recompra">
+      <img src="../assets/icon-192.png" alt="" width="44" height="44">
+      <span>BotiFarma<small>Recompra</small></span>
+    </a>
+
+    <div class="portada-rejilla">
+      <div>
+        <h1>Que ningún paciente se quede sin su tratamiento.</h1>
+        <p class="lema">Cada mañana la app le dice a quién le toca volver a comprar y le deja listo el WhatsApp. Usted solo toca enviar.</p>
+        <div class="acciones">
+          <a class="boton boton-principal" id="boton-principal" href="../">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+            <span id="boton-principal-texto">Abrir la app</span>
+          </a>
+          <a class="boton boton-secundario" href="#instalar">Cómo instalarla</a>
+        </div>
+        <p class="equipo" id="equipo" aria-live="polite"></p>
+      </div>
+
+      <div class="escena" aria-hidden="true">
+        <svg class="anillo" viewBox="0 0 400 400" role="presentation">
+          <defs>
+            <linearGradient id="arco-grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#ECFDF5"/>
+              <stop offset="1" stop-color="#5EEAD4"/>
+            </linearGradient>
+          </defs>
+          <g id="dias"></g>
+          <circle class="arco" cx="200" cy="200" r="128" pathLength="1000" transform="rotate(-90 200 200)"/>
+        </svg>
+        <div class="ficha">
+          <strong>Losartán 50 mg</strong>
+          <span>María Rodríguez</span>
+          <span>cada 30 días</span>
+          <em>Le toca hoy</em>
+        </div>
+        <div class="burbuja">
+          <b>BotiFarma</b>
+          Hola María 👋, ya le toca la recompra de Losartán 50 mg. ¿Se lo preparamos?
+          <time>9:02 a. m.</time>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section id="instalar">
+    <div class="ancho">
+      <h2>Instálela en su equipo</h2>
+      <p class="entrada">No hace falta tienda de aplicaciones ni cuenta. Se instala desde el navegador en menos de un minuto, queda con su ícono en la pantalla y abre aunque no haya internet.</p>
+
+      <div class="equipos" id="equipos">
+        <div class="equipo-col" data-equipo="android">
+          <h3>Android y tablets</h3>
+          <p class="navegador">Con Chrome o Samsung Internet</p>
+          <ol>
+            <li>Toque <b>Abrir la app</b> en esta página.</li>
+            <li>Toque <b>Instalar</b> en el aviso verde, o el menú <kbd>⋮</kbd> → <b>Instalar app</b>.</li>
+            <li>Ábrala desde el ícono de BotiFarma.</li>
+          </ol>
+        </div>
+        <div class="equipo-col" data-equipo="ios">
+          <h3>iPhone y iPad</h3>
+          <p class="navegador">Con Safari (también Chrome desde iOS 16.4)</p>
+          <ol>
+            <li>Toque <b>Abrir la app</b> en esta página.</li>
+            <li>Toque <b>Compartir</b> <svg class="icono-compartir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="(cuadro con flecha hacia arriba)" role="img"><path d="M12 15V3"/><path d="m8 7 4-4 4 4"/><path d="M6 11H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2h-1"/></svg> y luego <b>Añadir a pantalla de inicio</b>.</li>
+            <li>Toque <b>Añadir</b>. El ícono aparece junto a sus apps.</li>
+          </ol>
+        </div>
+        <div class="equipo-col" data-equipo="computadora">
+          <h3>Computadora</h3>
+          <p class="navegador">Windows o Mac, con Chrome o Edge</p>
+          <ol>
+            <li>Toque <b>Abrir la app</b> en esta página.</li>
+            <li>Haga clic en el ícono de instalar de la barra de direcciones, o en <b>Instalar</b> del aviso verde.</li>
+            <li>Ábrala desde el ícono, el menú Inicio o el Dock.</li>
+          </ol>
+          <p class="navegador nota-mac">En Mac con Safari: <b>Archivo</b> → <b>Agregar al Dock</b>.</p>
+        </div>
+      </div>
+
+      <div class="qr">
+        <img src="../placa/BotiFarma-QR-solo.png" alt="Código QR que abre BotiFarma Recompra" width="170" height="170">
+        <div>
+          <h3>¿La va a instalar en otra pantalla?</h3>
+          <p>Apunte la cámara de la tablet o del celular a este código y se abre la app.</p>
+          <p class="direccion">perezarthur81-art.github.io/la-biblioteca/botifarma/</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="como">
+    <div class="ancho">
+      <h2>Así trabaja cada día</h2>
+      <p class="entrada">Tres gestos en el mostrador. La app hace la cuenta de los días por usted.</p>
+      <ol class="pasos">
+        <li>
+          <h3>Registre al paciente</h3>
+          <p>Nombre, teléfono, el producto y cada cuántos días lo compra. Con su permiso para avisarle por WhatsApp.</p>
+        </li>
+        <li>
+          <h3>Avise a tiempo</h3>
+          <p>La pantalla Hoy muestra quién está vencido, a quién le toca hoy y quién viene en tres días. Un toque abre WhatsApp con el mensaje listo.</p>
+        </li>
+        <li>
+          <h3>Mida lo que recupera</h3>
+          <p>Cuando el paciente vuelve, toque Compró. El panel le dice cuántas recompras hubo y cuánto dinero volvió a la farmacia.</p>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="ancho">
+      <h2>Los datos de sus pacientes, en su equipo</h2>
+      <p class="entrada">No hay servidor ni cuenta en la nube: la lista vive solo en el aparato donde la instala.</p>
+      <ul class="garantias">
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          <div><strong>Bloqueo con clave</strong><span>Los datos se guardan cifrados y la app pide la clave al abrirla y tras un rato sin uso.</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 12l2 2 4-4"/><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7z"/></svg>
+          <div><strong>Permiso del paciente</strong><span>Cada ficha guarda si aceptó los avisos y la fecha, como pide la Ley 172-13. Sin permiso, no hay botón de WhatsApp.</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8.8a15 15 0 0 1 20 0"/><path d="M5 12.5a10 10 0 0 1 14 0"/><path d="M8.5 16a5 5 0 0 1 7 0"/><path d="M12 20h.01"/><path d="M3 3l18 18"/></svg>
+          <div><strong>Funciona sin internet</strong><span>Si se va la conexión, la app abre igual y guarda todo. El WhatsApp sale cuando vuelva la señal.</span></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+          <div><strong>Copias que usted controla</strong><span>Exporte la lista cuando quiera, compártala a su propio WhatsApp o ábrala en Excel. La app le recuerda hacerlo cada semana.</span></div>
+        </li>
+      </ul>
+
+      <div class="precio">
+        <div><strong>Gratis</strong><span>Hasta 15 pacientes, con todas las funciones.</span></div>
+        <div><strong>PRO</strong><span>Pacientes sin límite y mensaje de WhatsApp a su medida, con código de activación.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cierre">
+    <div class="ancho">
+      <h2>Empiece hoy con sus primeros cinco pacientes.</h2>
+      <a class="boton boton-principal" href="../">Abrir la app</a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="ancho">
+    <span>© 2026 Juan Carlos Pérez Arthur. Todos los derechos reservados.</span>
+    <span>Arthur Labs</span>
+  </div>
+</footer>
+
+<div class="hoja" id="hoja" role="dialog" aria-modal="true" aria-labelledby="hoja-titulo" hidden>
+  <div class="hoja-caja">
+    <h2 id="hoja-titulo">Instalar en este equipo</h2>
+    <ol id="hoja-pasos"></ol>
+    <button type="button" class="boton" id="hoja-cerrar">Entendido</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+(function () {
+  /* Anillo: 30 marcas, una por día del tratamiento; la última es "hoy" */
+  var grupo = document.getElementById("dias");
+  var NS = "http://www.w3.org/2000/svg";
+  for (var i = 0; i < 30; i++) {
+    var ang = (i / 30) * Math.PI * 2 - Math.PI / 2 + (Math.PI * 2) / 60;
+    var r1 = 150, r2 = i === 29 ? 182 : 170;
+    var l = document.createElementNS(NS, "line");
+    l.setAttribute("x1", (200 + r1 * Math.cos(ang)).toFixed(1));
+    l.setAttribute("y1", (200 + r1 * Math.sin(ang)).toFixed(1));
+    l.setAttribute("x2", (200 + r2 * Math.cos(ang)).toFixed(1));
+    l.setAttribute("y2", (200 + r2 * Math.sin(ang)).toFixed(1));
+    l.setAttribute("class", i === 29 ? "dia dia-hoy" : "dia dia-hecho");
+    grupo.appendChild(l);
+  }
+
+  /* ¿Qué equipo es? */
+  var ua = navigator.userAgent || "";
+  var ios = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  var android = /Android/i.test(ua);
+  var macSafari = !ios && /Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|OPR/.test(ua);
+  var firefox = /Firefox|FxiOS/i.test(ua);
+  var equipo = ios ? "ios" : (android ? "android" : "computadora");
+  var instalada = (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) || navigator.standalone === true;
+
+  var texto = document.getElementById("equipo");
+  var nombres = { ios: "iPhone o iPad", android: "Android", computadora: "computadora" };
+  if (instalada) texto.textContent = "Ya tiene la app instalada en este equipo.";
+  else if (ios) texto.textContent = "En su iPhone o iPad: abra la app y toque Compartir → Añadir a pantalla de inicio.";
+  else if (android && firefox) texto.textContent = "En Firefox: abra la app y use el menú ⋮ → Instalar.";
+  else if (macSafari) texto.textContent = "En Safari: abra la app y use Archivo → Agregar al Dock.";
+  else if (firefox) texto.textContent = "Firefox no instala apps en computadora: ábrala con Chrome o Edge para instalarla.";
+  else texto.textContent = "En su " + nombres[equipo] + ": abra la app y toque Instalar.";
+
+  /* El equipo del visitante va primero y marcado */
+  var col = document.querySelector('.equipo-col[data-equipo="' + equipo + '"]');
+  if (col) {
+    col.classList.add("suyo");
+    var marca = document.createElement("span");
+    marca.className = "es-suyo";
+    marca.textContent = "Su equipo";
+    col.querySelector("h3").appendChild(marca);
+    col.parentNode.insertBefore(col, col.parentNode.firstChild);
+  }
+
+  /* Instalación con un toque donde el navegador lo permite (Chrome, Edge, Samsung) */
+  var evento = null;
+  var principal = document.getElementById("boton-principal");
+  var principalTexto = document.getElementById("boton-principal-texto");
+  window.addEventListener("beforeinstallprompt", function (ev) {
+    ev.preventDefault();
+    evento = ev;
+    principalTexto.textContent = "Instalar la app";
+    texto.textContent = "Un toque y queda instalada, con su ícono en la pantalla.";
+  });
+  principal.addEventListener("click", function (ev) {
+    if (!evento) return; // sin aviso del navegador: el enlace abre la app
+    ev.preventDefault();
+    evento.prompt();
+    evento.userChoice.then(function (r) {
+      evento = null;
+      principalTexto.textContent = "Abrir la app";
+      if (r && r.outcome === "accepted") texto.textContent = "Lista. Ábrala desde el ícono de BotiFarma.";
+    });
+  });
+  window.addEventListener("appinstalled", function () {
+    evento = null;
+    principalTexto.textContent = "Abrir la app";
+    texto.textContent = "Lista. Ábrala desde el ícono de BotiFarma.";
+  });
+
+  /* Hoja de pasos para iPhone/iPad (se abre con "Cómo instalarla" en iOS) */
+  var hoja = document.getElementById("hoja");
+  var cerrar = document.getElementById("hoja-cerrar");
+  function abrirHoja() {
+    var pasos = document.getElementById("hoja-pasos");
+    while (pasos.firstChild) pasos.removeChild(pasos.firstChild);
+    var origen = document.querySelector('.equipo-col[data-equipo="' + equipo + '"] ol');
+    if (origen) for (var j = 0; j < origen.children.length; j++) pasos.appendChild(origen.children[j].cloneNode(true));
+    hoja.hidden = false;
+    cerrar.focus();
+  }
+  cerrar.addEventListener("click", function () { hoja.hidden = true; });
+  hoja.addEventListener("click", function (ev) { if (ev.target === hoja) hoja.hidden = true; });
+  document.addEventListener("keydown", function (ev) { if (ev.key === "Escape") hoja.hidden = true; });
+  if (ios && !instalada) {
+    document.querySelector('a[href="#instalar"]').addEventListener("click", function (ev) { ev.preventDefault(); abrirHoja(); });
+  }
+
+  /* El mismo service worker de la app: deja la app lista sin conexión y
+     permite el botón de instalar desde esta página */
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("../sw.js").catch(function () {});
+  }
+})();
+</script>
+</body>
+</html>
